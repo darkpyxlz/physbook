@@ -88,10 +88,42 @@
     });
     return enginePromise;
   }
-  function call(name, args) { return loadEngine().then(function (api) { return api(name, args); }); }
+  function syncSigns(api) { api('set_signs', [JSON.stringify(S.signs || {})]); }
+  function call(name, args) { return loadEngine().then(function (api) { syncSigns(api); return api(name, args); }); }
+  const MATHLIVE = 'https://cdn.jsdelivr.net/npm/mathlive@0.109.2/';
+  let mathlivePromise = null;
+  function loadMathLive() {
+    if (mathlivePromise) return mathlivePromise;
+    mathlivePromise = new Promise(function (res, rej) {
+      if (window.MathfieldElement) return res();
+      const s = document.createElement('script');
+      s.src = MATHLIVE + 'mathlive.min.js';
+      s.onload = function () { res(); };
+      s.onerror = function () { mathlivePromise = null; rej(new Error('Could not download the equation maker (MathLive).')); };
+      document.head.appendChild(s);
+    }).then(function () {
+      window.MathfieldElement.fontsDirectory = MATHLIVE + 'fonts/';
+      window.MathfieldElement.soundsDirectory = null;
+    });
+    return mathlivePromise;
+  }
 
   /* ---------- State ---------- */
-  function fresh() { return { cards: [], links: [], knowns: {}, knownFrom: {}, deg: false, next: 1, seq: 1 }; }
+  function fresh() { return { cards: [], links: [], knowns: {}, knownFrom: {}, signs: {}, sel: {}, deg: false, next: 1, seq: 1 }; }
+  function canBeNeg(name) { return !!(S.signs && S.signs[name] === 'real'); }
+  function toggleSign(name) {
+    snapshot();
+    if (canBeNeg(name)) delete S.signs[name]; else S.signs[name] = 'real';
+    save();
+    refreshSignMarks();
+    syncKnownInputs();
+    evaluateAll();
+    PB.toast(canBeNeg(name) ? name + ' may now be negative. New results keep negative roots for it.' : name + ' is treated as positive again.');
+  }
+  function refreshSignMarks() {
+    if (!ui) return;
+    ui.cards.querySelectorAll('.port').forEach(function (q) { q.classList.toggle('neg', canBeNeg(q.getAttribute('data-var'))); });
+  }
   function loadState() {
     try {
       const raw = localStorage.getItem(KEY);
@@ -135,11 +167,15 @@
     els.clear();
     const status = h('span', { class: 'eng-pill', role: 'status' });
     const input = h('input', { class: 'eq-input', type: 'text', spellcheck: 'false', autocomplete: 'off', autocapitalize: 'off',
-      placeholder: 'Type an equation, e.g.  v = u + a*t', 'aria-label': 'Equation to add' });
+      placeholder: 'v = u + a*t   or LaTeX:  \\frac{1}{2}mv^2 = mgh', 'aria-label': 'Equation to add, as plain text or LaTeX' });
     const addBtn = h('button', { class: 'btn primary', type: 'submit', text: 'Add' });
     const form = h('form', { class: 'eq-form' }, [input, addBtn]);
     const preview = h('div', { class: 'eq-preview', 'aria-live': 'polite' });
     const libBtn = h('button', { class: 'btn small', type: 'button', 'aria-expanded': 'false', text: 'Equation library' });
+    const makerBtn = h('button', { class: 'btn small', type: 'button', 'aria-expanded': 'false', text: 'Equation maker' });
+    const exportBtn = h('button', { class: 'btn small', type: 'button', 'aria-expanded': 'false', text: 'Export LaTeX' });
+    const maker = h('div', { class: 'eq-panel eq-maker', hidden: true });
+    const exporter = h('div', { class: 'eq-panel eq-export', hidden: true });
     const exSel = h('select', { class: 'ex-select', 'aria-label': 'Load an example board' }, [h('option', { value: '', text: 'Load an example…' })]);
     EXAMPLES.forEach(function (ex, i) { exSel.appendChild(h('option', { value: String(i), text: ex.name })); });
     const degBtn = h('button', { class: 'btn small', type: 'button', 'aria-pressed': S.deg ? 'true' : 'false' });
@@ -172,13 +208,13 @@
         h('div', {}, [h('div', { class: 'eyebrow', text: 'Tool' }), h('h1', { text: 'Equation board' })]),
         h('p', { class: 'solver-lede', html: 'Wire matching variables between equations to substitute and eliminate, step by step. Drag a variable onto another card’s variable; click a variable to rearrange for it.' })
       ]),
-      h('div', { class: 'solver-bar' }, [form, h('div', { class: 'bar-tools' }, [libBtn, exSel, degBtn, undoBtn, clearBtn, status])]),
-      preview, lib, hint,
+      h('div', { class: 'solver-bar' }, [form, h('div', { class: 'bar-tools' }, [makerBtn, libBtn, exSel, exportBtn, degBtn, undoBtn, clearBtn, status])]),
+      preview, maker, lib, exporter, hint,
       h('div', { class: 'board-wrap' }, [board, side])
     ]);
 
     ui = { wrap: wrap, board: board, canvas: canvas, prov: prov, wires: wires, cards: cardsLayer, empty: empty, knownList: knownList,
-      input: input, addBtn: addBtn, preview: preview, status: status, undoBtn: undoBtn, hint: hint, degBtn: degBtn, menu: null, pending: null };
+      input: input, addBtn: addBtn, preview: preview, exporter: exporter, exportBtn: exportBtn, status: status, undoBtn: undoBtn, hint: hint, degBtn: degBtn, menu: null, pending: null };
 
     /* engine status */
     function showStatus() {
@@ -206,6 +242,7 @@
       if (!text) { preview.innerHTML = ''; return; }
       pvTimer = setTimeout(function () {
         if (engine.state !== 'ready') return;
+        syncSigns(engine.api);
         const r = engine.api('parse_eq', [text]);
         if (input.value.trim() !== text) return;
         if (r.ok) { preview.className = 'eq-preview'; preview.innerHTML = '<span class="pv-k">Preview</span> $' + r.tex + '$'; PB.typeset(preview); }
@@ -223,9 +260,28 @@
       lib.appendChild(h('div', { class: 'lib-grp' }, [h('div', { class: 'lib-name', text: grp[0] }), row]));
     });
     let libTypeset = false;
+    const panels = [[libBtn, lib], [makerBtn, maker], [exportBtn, exporter]];
+    function showPanel(btn, open) {
+      panels.forEach(function (pp) {
+        const on = pp[0] === btn && open;
+        pp[1].hidden = !on;
+        pp[0].setAttribute('aria-expanded', on ? 'true' : 'false');
+      });
+    }
+    ui.showPanel = showPanel;
+    makerBtn.addEventListener('click', function () {
+      const open = maker.hidden;
+      showPanel(makerBtn, open);
+      if (open) buildMaker(maker);
+    });
+    exportBtn.addEventListener('click', function () {
+      const open = exporter.hidden;
+      showPanel(exportBtn, open);
+      if (open) renderExport();
+    });
     libBtn.addEventListener('click', function () {
-      lib.hidden = !lib.hidden;
-      libBtn.setAttribute('aria-expanded', lib.hidden ? 'false' : 'true');
+      if (lib.hidden) showPanel(libBtn, true);
+      else { showPanel(libBtn, false); return; }
       if (!lib.hidden && !libTypeset) { libTypeset = true; PB.typeset(lib); }
     });
 
@@ -275,6 +331,8 @@
     els.forEach(function (el, id) { if (!ids.has(id)) { el.remove(); els.delete(id); } });
     S.cards.forEach(function (c) { if (!els.has(c.id)) { const el = cardEl(c); els.set(c.id, el); ui.cards.appendChild(el); PB.typeset(el); } });
     ui.empty.hidden = S.cards.length > 0;
+    updateExportBtn();
+    if (!ui.exporter.hidden) renderExport();
     renderKnowns();
     sizeCanvas();
     drawWires();
@@ -287,6 +345,11 @@
       h('span', { class: 'eq-num', text: label(c) }),
       h('span', { class: 'eq-origin', html: c.via ? c.via : 'given' })
     ]);
+    const pick = h('button', { class: 'eq-pick', type: 'button', 'aria-pressed': S.sel[c.id] ? 'true' : 'false', title: 'Select for LaTeX export',
+      'aria-label': 'Select equation ' + label(c) + ' for LaTeX export',
+      html: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path class="tick" d="M4.8 8.2l2.2 2.2 4.4-4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      onclick: function () { toggleSelect(c.id); } });
+    head.insertBefore(pick, head.firstChild);
     if (c.src != null) head.appendChild(h('button', { class: 'eq-x', type: 'button', 'aria-label': 'Edit equation ' + label(c), title: 'Edit', html: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>', onclick: function () { editCard(c); } }));
     head.appendChild(h('button', { class: 'eq-x', type: 'button', 'aria-label': 'Delete equation ' + label(c), title: 'Delete', html: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>', onclick: function () { deleteCard(c.id); } }));
     const body = h('div', { class: 'eq-tex', html: '$$' + c.tex + '$$' });
@@ -295,9 +358,10 @@
       const p = h('button', { class: 'port', type: 'button', 'data-card': c.id, 'data-var': v.name, 'aria-label': 'Variable ' + v.name + ' in equation ' + label(c) + '. Drag to another card to link, or press for options.', html: '$' + v.tex + '$' });
       p.style.setProperty('--vc', col(v.name));
       p.style.setProperty('--vc-soft', col(v.name, 0.13));
+      if (canBeNeg(v.name)) p.classList.add('neg');
       ports.appendChild(p);
     });
-    const el = h('div', { class: 'eq-card' + (c.parents && c.parents.length ? ' derived' : ''), 'data-id': c.id }, [head, body, ports]);
+    const el = h('div', { class: 'eq-card' + (c.parents && c.parents.length ? ' derived' : '') + (S.sel[c.id] ? ' selected' : ''), 'data-id': c.id }, [head, body, ports]);
     if (c.steps && c.steps.length) {
       const det = h('details', { class: 'eq-steps' }, [h('summary', { text: 'Working' })]);
       const ol = h('ol');
@@ -473,6 +537,7 @@
   function deleteCard(id) {
     snapshot();
     S.cards = S.cards.filter(function (c) { return c.id !== id; });
+    delete S.sel[id];
     S.links = S.links.filter(function (L) { return L.a.c !== id && L.b.c !== id; });
     S.cards.forEach(function (c) { if (c.parents) c.parents = c.parents.filter(function (p) { return p !== id; }); });
     S.links.forEach(function (L) { if (L.used && L.used.results) L.used.results = L.used.results.filter(function (r) { return r !== id; }); });
@@ -492,7 +557,7 @@
     function finish(commit) {
       if (done) return;
       if (!commit || inp.value.trim() === c.src) { done = true; box.replaceWith(body); return; }
-      call('parse_eq', [inp.value.trim()]).then(function (r) {
+      call('parse_eq', [inp.value.trim(), c.mode || 'auto']).then(function (r) {
         if (!r.ok) { msg.textContent = r.error; inp.focus(); return; }
         done = true;
         snapshot();
@@ -587,6 +652,7 @@
       items.push(menuBtn('Link to $' + tex + '$ in ' + label(o), function () { closeMenu(); addLink({ c: c.id, v: name }, { c: o.id, v: name }); }));
     });
     items.push(menuBtn('Link to a different variable…', function () { closeMenu(); setPending({ c: c.id, v: name }); }));
+    items.push(menuBtn(canBeNeg(name) ? 'Treat $' + tex + '$ as positive' : 'Allow $' + tex + '$ to be negative', function () { closeMenu(); toggleSign(name); }));
     items.push(menuBtn('Enter a value for $' + tex + '$', function () {
       closeMenu();
       const inp = ui.knownList.querySelector('input[data-var="' + cssEsc(name) + '"]');
@@ -779,14 +845,15 @@
     S.cards.push(c);
     return c;
   }
-  function addEquation(text) {
-    return call('parse_eq', [text]).then(function (r) {
+  function addEquation(text, mode) {
+    return call('parse_eq', [text, mode || 'auto']).then(function (r) {
       if (!r.ok) {
         if (ui) { ui.preview.className = 'eq-preview err'; ui.preview.textContent = r.error; }
         return false;
       }
       snapshot();
       const c = newCard(r, { src: text });
+      if (mode) c.mode = mode;
       save(); renderAll(false); flash([c]);
       return true;
     }, function () {
@@ -799,7 +866,7 @@
       const parsed = ex.eqs.map(function (t) { return engine.api('parse_eq', [t]); });
       if (parsed.some(function (r) { return !r.ok; })) return;
       if (S.cards.length) snapshot();
-      S = Object.assign(fresh(), { deg: S.deg, knowns: {}, knownFrom: {} });
+      S = Object.assign(fresh(), { deg: S.deg, signs: S.signs || {} });
       const made = parsed.map(function (r, i) {
         const c = newCard(r, { src: ex.eqs[i] });
         c.x = 24 + i * 300; c.y = 24 + (i % 2) * 40;
@@ -809,6 +876,168 @@
       save(); closeMenu(); renderAll(true);
       PB.toast(ex.name + ': ' + ex.note + (undoStack.length ? ' Undo restores your old board.' : ''));
     }, function () {});
+  }
+
+  /* ---------- Equation maker (MathLive visual editor) ---------- */
+  function finePointer() { return !window.matchMedia || window.matchMedia('(pointer: fine)').matches; }
+  function buildMaker(panel) {
+    if (panel._mf) { if (finePointer()) setTimeout(function () { panel._mf.focus(); }, 0); return; }
+    if (panel._loading) return;
+    panel._loading = true;
+    panel.innerHTML = '';
+    const status = h('p', { class: 'panel-note', text: 'Loading the equation maker…' });
+    panel.appendChild(status);
+    loadMathLive().then(function () {
+      panel._loading = false;
+      panel.innerHTML = '';
+      const mf = new window.MathfieldElement();
+      mf.setAttribute('aria-label', 'Equation maker');
+      mf.className = 'maker-field';
+      mf.smartFence = true;
+      const pv = h('div', { class: 'eq-preview maker-preview', 'aria-live': 'polite' });
+      const add = h('button', { class: 'btn primary small', type: 'button', text: 'Add to board' });
+      const kb = h('button', { class: 'btn small', type: 'button', text: 'Keyboard' });
+      const clr = h('button', { class: 'btn small ghost', type: 'button', text: 'Clear' });
+      panel.append(
+        h('p', { class: 'panel-note', html: 'Build the equation visually. Type <kbd>/</kbd> for a fraction, <kbd>^</kbd> for a power, <kbd>_</kbd> for a subscript, <kbd>sqrt</kbd> for a root, and Greek names such as <kbd>theta</kbd> or <kbd>omega</kbd>. Letters side by side multiply, so <i>mgh</i> means <i>m·g·h</i>; write a multi-letter name as a subscript (<i>v</i><sub>max</sub>).' }),
+        mf, pv, h('div', { class: 'maker-actions' }, [add, kb, clr])
+      );
+      panel._mf = mf;
+      let t = null;
+      function preview() {
+        clearTimeout(t);
+        t = setTimeout(function () {
+          const latex = mf.value.trim();
+          if (!latex) { pv.textContent = ''; pv.className = 'eq-preview maker-preview'; return; }
+          if (engine.state !== 'ready') return;
+          syncSigns(engine.api);
+          const r = engine.api('parse_eq', [latex, 'latex']);
+          if (r.ok) { pv.className = 'eq-preview maker-preview'; pv.innerHTML = '<span class="pv-k">Reads as</span> $' + r.tex + '$'; PB.typeset(pv); }
+          else if (latex.indexOf('=') >= 0) { pv.className = 'eq-preview maker-preview err'; pv.textContent = r.error; }
+          else { pv.className = 'eq-preview maker-preview'; pv.textContent = 'Add an = sign.'; }
+        }, 250);
+      }
+      function submit() {
+        const latex = mf.value.trim();
+        if (!latex) { mf.focus(); return; }
+        addEquation(latex, 'latex').then(function (ok) {
+          if (ok) { mf.value = ''; pv.textContent = ''; mf.focus(); }
+          else { pv.className = 'eq-preview maker-preview err'; pv.textContent = ui && ui.preview.textContent; ui.preview.textContent = ''; }
+        });
+      }
+      mf.addEventListener('input', preview);
+      mf.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); submit(); } }, true);
+      add.addEventListener('click', submit);
+      clr.addEventListener('click', function () { mf.value = ''; preview(); mf.focus(); });
+      kb.addEventListener('click', function () {
+        mf.focus();
+        const vk = window.mathVirtualKeyboard;
+        if (vk) { if (vk.visible) vk.hide(); else vk.show(); }
+      });
+      /* on touch screens the math keyboard would cover the field, so wait for a tap and keep the field in view */
+      mf.addEventListener('focus', function () { setTimeout(function () { mf.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 350); });
+      if (finePointer()) setTimeout(function () { mf.focus(); }, 0);
+    }, function (e) {
+      panel._loading = false;
+      status.className = 'panel-note err';
+      status.textContent = e.message + ' You can still type LaTeX into the box above.';
+    });
+  }
+
+  /* ---------- Selecting and exporting LaTeX ---------- */
+  function toggleSelect(id, on) {
+    const v = on == null ? !S.sel[id] : on;
+    if (v) S.sel[id] = true; else delete S.sel[id];
+    const el = els.get(id);
+    if (el) {
+      el.classList.toggle('selected', v);
+      const b = el.querySelector('.eq-pick');
+      if (b) b.setAttribute('aria-pressed', v ? 'true' : 'false');
+    }
+    save();
+    if (ui && !ui.exporter.hidden) renderExport();
+    updateExportBtn();
+  }
+  function updateExportBtn() {
+    if (!ui) return;
+    const n = S.cards.filter(function (c) { return S.sel[c.id]; }).length;
+    ui.exportBtn.textContent = n ? 'Export LaTeX (' + n + ')' : 'Export LaTeX';
+  }
+  const ENVS = [['equation', 'equation (one per card)'], ['equation*', 'equation* (unnumbered)'], ['align', 'align (one block)'], ['align*', 'align* (one block)'],
+    ['gather', 'gather (one block)'], ['dmath', '\\[ … \\] (display math)']];
+  function plainVia(c) {
+    return (c.via || 'given').replace(/\$/g, '').replace(/→/g, '->').replace(/\\equiv/g, '=');
+  }
+  function latexExport(cards, o) {
+    const out = ['% Exported from the Physbook equation board' + (o.env !== 'dmath' ? ' (needs \\usepackage{amsmath})' : '')];
+    const lab = function (c) { return o.label && !/\*$/.test(o.env) && o.env !== 'dmath' ? '\\label{eq:' + c.n + '}' : ''; };
+    if (o.env === 'equation' || o.env === 'equation*' || o.env === 'dmath') {
+      cards.forEach(function (c) {
+        out.push('');
+        if (o.notes) out.push('% (' + c.n + ') ' + plainVia(c));
+        if (o.env === 'dmath') { out.push('\\[ ' + c.tex + ' \\]'); return; }
+        out.push('\\begin{' + o.env + '}', '  ' + c.tex);
+        if (lab(c)) out.push('  ' + lab(c));
+        out.push('\\end{' + o.env + '}');
+      });
+    } else {
+      out.push('', '\\begin{' + o.env + '}');
+      cards.forEach(function (c, i) {
+        if (o.notes) out.push('  % (' + c.n + ') ' + plainVia(c));
+        let t = c.tex;
+        if (/^align/.test(o.env)) { const k = t.indexOf(' = '); if (k >= 0) t = t.slice(0, k) + ' &= ' + t.slice(k + 3); }
+        out.push('  ' + t + (lab(c) ? ' ' + lab(c) : '') + (i < cards.length - 1 ? ' \\\\' : ''));
+      });
+      out.push('\\end{' + o.env + '}');
+    }
+    return out.join('\n') + '\n';
+  }
+  function renderExport() {
+    if (!ui) return;
+    const panel = ui.exporter;
+    const o = S.exportOpts = Object.assign({ env: 'equation', label: true, notes: false }, S.exportOpts || {});
+    const chosen = S.cards.filter(function (c) { return S.sel[c.id]; }).sort(function (a, b) { return a.n - b.n; });
+    panel.innerHTML = '';
+    const envSel = h('select', { class: 'ex-select', 'aria-label': 'LaTeX environment' });
+    ENVS.forEach(function (e) { envSel.appendChild(h('option', { value: e[0], text: e[1] })); });
+    envSel.value = o.env;
+    const labBox = h('input', { type: 'checkbox' }); labBox.checked = o.label;
+    const noteBox = h('input', { type: 'checkbox' }); noteBox.checked = o.notes;
+    const ta = h('textarea', { class: 'export-out', readonly: true, spellcheck: 'false', 'aria-label': 'Exported LaTeX' });
+    const msg = h('span', { class: 'panel-note', 'aria-live': 'polite' });
+    function refresh() {
+      o.env = envSel.value; o.label = labBox.checked; o.notes = noteBox.checked; save();
+      ta.value = chosen.length ? latexExport(chosen, o) : '';
+      ta.placeholder = 'Tick the box at the top left of each card you want, or press Select all.';
+    }
+    [envSel, labBox, noteBox].forEach(function (el) { el.addEventListener('change', refresh); });
+    const copy = h('button', { class: 'btn primary small', type: 'button', text: 'Copy', onclick: function () {
+      if (!ta.value) return;
+      const done = function () { msg.textContent = 'Copied.'; };
+      if (navigator.clipboard) navigator.clipboard.writeText(ta.value).then(done, function () { ta.select(); document.execCommand('copy'); done(); });
+      else { ta.select(); document.execCommand('copy'); done(); }
+    } });
+    const dl = h('button', { class: 'btn small', type: 'button', text: 'Download .tex', onclick: function () {
+      if (!ta.value) return;
+      const a = h('a', { href: URL.createObjectURL(new Blob([ta.value], { type: 'text/x-tex' })), download: 'equations.tex' });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    } });
+    panel.append(
+      h('div', { class: 'export-top' }, [
+        h('b', { text: chosen.length + ' of ' + S.cards.length + ' equations selected' }),
+        h('button', { class: 'btn small ghost', type: 'button', text: 'Select all', onclick: function () { S.cards.forEach(function (c) { toggleSelect(c.id, true); }); } }),
+        h('button', { class: 'btn small ghost', type: 'button', text: 'Select none', onclick: function () { S.cards.forEach(function (c) { toggleSelect(c.id, false); }); } })
+      ]),
+      h('div', { class: 'export-opts' }, [
+        h('label', {}, ['Environment ', envSel]),
+        h('label', { class: 'chk' }, [labBox, ' \\label{eq:n}']),
+        h('label', { class: 'chk' }, [noteBox, ' Comment where each came from'])
+      ]),
+      ta,
+      h('div', { class: 'maker-actions' }, [copy, dl, msg])
+    );
+    refresh();
   }
 
   /* ---------- Known values and numerical answers ---------- */
@@ -827,7 +1056,9 @@
       const from = h('span', { class: 'kfrom' });
       const clr = h('button', { class: 'kclear', type: 'button', 'aria-label': 'Clear ' + v.name, text: '×', onclick: function () { inp.value = ''; setKnown(v.name, ''); } });
       inp.addEventListener('input', function () { setKnown(v.name, inp.value); });
-      const row = h('label', { class: 'known' }, [h('span', { class: 'ksym', html: '$' + v.tex + '$' }), inp, clr, from]);
+      const sign = h('button', { class: 'ksign', type: 'button', text: '±', title: 'Allow negative values', 'aria-label': 'Allow ' + v.name + ' to be negative', 'aria-pressed': 'false',
+        onclick: function (e) { e.preventDefault(); toggleSign(v.name); } });
+      const row = h('label', { class: 'known' }, [h('span', { class: 'ksym', html: '$' + v.tex + '$' }), inp, sign, clr, from]);
       row.style.setProperty('--vc', col(v.name));
       box.appendChild(row);
     });
@@ -840,7 +1071,11 @@
       const v = S.knowns[name];
       if (document.activeElement !== inp) inp.value = v == null ? '' : (S.knownFrom[name] ? PB.fmt(v, 5) : (inp._raw != null && PB.parseNumber(inp._raw) === v ? inp._raw : String(v)));
       const src = S.knownFrom[name] ? card(S.knownFrom[name]) : null;
-      row.querySelector('.kfrom').textContent = src ? 'from ' + label(src) : '';
+      const neg = canBeNeg(name);
+      row.querySelector('.ksign').setAttribute('aria-pressed', neg ? 'true' : 'false');
+      const kf = row.querySelector('.kfrom');
+      kf.classList.toggle('warn', v != null && v < 0 && !neg);
+      kf.textContent = v != null && v < 0 && !neg ? 'negative, but set as positive: press ±' : (src ? 'from ' + label(src) : '');
       row.classList.toggle('has', v != null);
     });
   }
@@ -862,6 +1097,7 @@
   function evalNow() {
     if (!ui || engine.state !== 'ready') return;
     const anyKnown = Object.keys(S.knowns).length > 0;
+    let synced = false;
     S.cards.forEach(function (c) {
       const el = els.get(c.id);
       if (!el) return;
@@ -870,6 +1106,7 @@
       if (!relevant) { out.hidden = true; out.innerHTML = ''; return; }
       const kn = {};
       c.vars.forEach(function (v) { if (S.knowns[v.name] != null) kn[v.name] = S.knowns[v.name]; });
+      if (!synced) { syncSigns(engine.api); synced = true; }
       const r = engine.api('evaluate', [c.L, c.R, JSON.stringify(kn), !!S.deg]);
       out.hidden = false; out.innerHTML = ''; out.className = 'eq-eval';
       if (!r.ok) { out.textContent = r.error; return; }
