@@ -17,6 +17,18 @@
     PB.chapters.push(ch);
     PB.chapters.sort(function (a, b) { return a.num - b.num; });
   };
+  // Append extra problems to an already registered chapter, keeping existing ids stable.
+  PB.addProblems = function (chId, list) {
+    const ch = PB.chapter(chId);
+    if (!ch) { console.warn('addProblems: no chapter ' + chId); return; }
+    list.forEach(function (p) {
+      p.chapter = ch.id;
+      p.num = ch.problems.length + 1;
+      p.id = ch.id + '-' + p.num;
+      if (!p.points) p.points = { concept: 10, core: 20, olympiad: 40 }[p.level] || 10;
+      ch.problems.push(p);
+    });
+  };
   PB.chapter = function (id) { return PB.chapters.find(function (c) { return c.id === id; }); };
   PB.allProblems = function () { return PB.chapters.reduce(function (a, c) { return a.concat(c.problems); }, []); };
   PB.problem = function (pid) { return PB.allProblems().find(function (p) { return p.id === pid; }); };
@@ -27,14 +39,19 @@
     return {
       xp: 0, solved: {}, attempts: {}, hints: {}, revealed: {}, read: {}, labs: {},
       streak: { last: null, count: 0, best: 0 }, badges: {}, dailyDone: {}, firstTryRun: 0,
-      lastChapter: null, theme: null, created: Date.now()
+      lastChapter: null, theme: null, created: Date.now(),
+      activity: {}, day: {}, quests: {}, questDays: {},
+      gym: { correct: 0, answered: 0, bestCombo: 0, sprintBest: 0, dayXP: {} }
     };
   }
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return fresh();
-      return Object.assign(fresh(), JSON.parse(raw));
+      const f = fresh(), obj = JSON.parse(raw);
+      const out = Object.assign(f, obj);
+      out.gym = Object.assign(fresh().gym, obj.gym || {});
+      return out;
     } catch (e) { return fresh(); }
   }
   PB.S = load();
@@ -128,9 +145,12 @@
     return 'open';
   };
 
-  function addXP(n, reason) {
+  function addXP(n, reason, noCount) {
     const before = PB.levelInfo().level;
     PB.S.xp += n;
+    const t = dayKey();
+    PB.S.activity[t] = (PB.S.activity[t] || 0) + n;
+    if (!noCount) PB.bump('xp', n);
     const after = PB.levelInfo().level;
     PB.emit({ type: 'xp', amount: n, reason: reason });
     if (after > before) PB.emit({ type: 'levelup', level: after, title: PB.levelInfo().title });
@@ -158,6 +178,9 @@
       if (PB.isDaily(p)) PB.S.dailyDone[dayKey()] = true;
       touchStreak();
       addXP(pts, 'Solved ' + p.id);
+      PB.bump('solved', 1);
+      if (p.level === 'olympiad') PB.bump('olympiad', 1);
+      if (p.level === 'core') PB.bump('core', 1);
       PB.checkBadges();
       PB.save();
       return { ok: true, pts: pts, clean: clean };
@@ -184,6 +207,7 @@
     PB.S.lastChapter = chId;
     touchStreak();
     addXP(5, 'Read a section');
+    PB.bump('read', 1);
     PB.checkBadges(); PB.save();
     return true;
   };
@@ -191,8 +215,111 @@
     if (PB.S.labs[chId]) return false;
     PB.S.labs[chId] = Date.now();
     addXP(5, 'Explored a lab');
+    PB.bump('labs', 1);
     PB.checkBadges(); PB.save();
     return true;
+  };
+
+  /* ---------- Daily counters and quests ---------- */
+  function today() {
+    const t = dayKey();
+    if (!PB.S.day || PB.S.day.date !== t) PB.S.day = { date: t, xp: 0, solved: 0, olympiad: 0, core: 0, read: 0, labs: 0, gym: 0, combo: 0, sprint: 0 };
+    return PB.S.day;
+  }
+  PB.dayStats = today;
+  PB.QUEST_POOL = [
+    { key: 'solved', n: 3, xp: 30, text: 'Solve 3 problems' },
+    { key: 'solved', n: 6, xp: 50, text: 'Solve 6 problems' },
+    { key: 'core', n: 2, xp: 35, text: 'Solve 2 core problems' },
+    { key: 'olympiad', n: 1, xp: 50, text: 'Solve an olympiad problem' },
+    { key: 'read', n: 2, xp: 20, text: 'Read 2 sections' },
+    { key: 'read', n: 4, xp: 35, text: 'Read 4 sections' },
+    { key: 'labs', n: 1, xp: 20, text: 'Explore a lab' },
+    { key: 'gym', n: 10, xp: 30, text: 'Answer 10 gym drills correctly' },
+    { key: 'gym', n: 20, xp: 45, text: 'Answer 20 gym drills correctly' },
+    { key: 'combo', n: 5, xp: 35, text: 'Reach a ×5 combo in the gym' },
+    { key: 'sprint', n: 8, xp: 40, text: 'Score 8 in a gym sprint' },
+    { key: 'xp', n: 100, xp: 30, text: 'Earn 100 XP' },
+    { key: 'xp', n: 200, xp: 50, text: 'Earn 200 XP' }
+  ];
+  // Three quests per day, picked deterministically from the date, all with different counters.
+  PB.questsToday = function () {
+    const t = dayKey();
+    let h = hash('quests' + t);
+    const out = [], used = {};
+    let guard = 0;
+    while (out.length < 3 && guard++ < 100) {
+      const q = PB.QUEST_POOL[h % PB.QUEST_POOL.length];
+      h = Math.imul(h ^ (h >>> 13), 2654435761) >>> 0;
+      if (used[q.key]) continue;
+      used[q.key] = 1; out.push(q);
+    }
+    const d = today();
+    return out.map(function (q, i) {
+      const id = t + ':' + i;
+      return { id: id, text: q.text, key: q.key, n: q.n, xp: q.xp, progress: Math.min(q.n, d[q.key] || 0), done: !!PB.S.quests[id] };
+    });
+  };
+  // Max-type counters (combo, sprint) keep the best value; others accumulate.
+  PB.bump = function (key, n) {
+    const d = today();
+    if (key === 'combo' || key === 'sprint') d[key] = Math.max(d[key] || 0, n);
+    else d[key] = (d[key] || 0) + n;
+    const qs = PB.questsToday();
+    let newly = 0;
+    qs.forEach(function (q) {
+      if (!q.done && q.progress >= q.n) {
+        PB.S.quests[q.id] = Date.now(); newly++;
+        addXP(q.xp, 'Quest: ' + q.text, true);
+        PB.emit({ type: 'quest', quest: q });
+      }
+    });
+    if (newly && PB.questsToday().every(function (q) { return q.done; }) && !PB.S.questDays[d.date]) {
+      PB.S.questDays[d.date] = true;
+      addXP(40, 'All daily quests done', true);
+      PB.emit({ type: 'quest', quest: { text: 'All three daily quests', xp: 40 } });
+      PB.checkBadges();
+    }
+    PB.save();
+  };
+
+  /* ---------- Practice gym ---------- */
+  PB.drills = {};
+  PB.addDrills = function (chId, list) { PB.drills[chId] = (PB.drills[chId] || []).concat(list.map(function (d) { d.chapter = chId; return d; })); };
+  PB.GYM_DAILY_CAP = 200;
+  PB.gymXPLeft = function () { const t = dayKey(); return Math.max(0, PB.GYM_DAILY_CAP - (PB.S.gym.dayXP[t] || 0)); };
+  PB.comboMult = function (combo) { return Math.min(3, 1 + 0.25 * Math.max(0, combo - 1)); };
+  // Record a gym answer. Returns the XP awarded.
+  PB.gymAnswer = function (ok, combo, base) {
+    const g = PB.S.gym; g.answered++;
+    let xp = 0;
+    if (ok) {
+      g.correct++;
+      g.bestCombo = Math.max(g.bestCombo, combo);
+      xp = Math.min(PB.gymXPLeft(), Math.round((base || 5) * PB.comboMult(combo)));
+      const t = dayKey(); g.dayXP[t] = (g.dayXP[t] || 0) + xp;
+      touchStreak();
+      if (xp > 0) addXP(xp, 'Gym ×' + PB.comboMult(combo).toFixed(2).replace(/0$/, '').replace(/\.0$/, ''));
+      PB.bump('gym', 1);
+      PB.bump('combo', combo);
+    }
+    PB.checkBadges(); PB.save();
+    return xp;
+  };
+  PB.sprintDone = function (score) {
+    const g = PB.S.gym, best = score > (g.sprintBest || 0);
+    if (best) g.sprintBest = score;
+    PB.bump('sprint', score);
+    PB.checkBadges(); PB.save();
+    return best;
+  };
+  PB.rng = function (seed) {
+    let a = seed >>> 0 || 1;
+    const r = function () { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    r.int = function (lo, hi) { return lo + Math.floor(r() * (hi - lo + 1)); };
+    r.pick = function (arr) { return arr[Math.floor(r() * arr.length)]; };
+    r.step = function (lo, hi, st) { return +(lo + st * Math.floor(r() * (Math.round((hi - lo) / st) + 1))).toFixed(6); };
+    return r;
   };
 
   /* ---------- Chapter progress ---------- */
@@ -243,6 +370,16 @@
     { id: 'em', mark: 'EM', name: 'Maxwellian', desc: 'Master every electricity & magnetism chapter.', test: function () { return chaptersDone([13, 14, 15, 16]) === 4; } },
     { id: 'optics', mark: 'λ', name: 'Lens Crafter', desc: 'Master both optics chapters.', test: function () { return chaptersDone([17, 18]) === 2; } },
     { id: 'modern', mark: 'ħ', name: 'Quantum Leap', desc: 'Master every modern physics chapter.', test: function () { return chaptersDone([19, 20, 21]) === 3; } },
+    { id: 'gym1', mark: 'G', name: 'Warm-up Set', desc: 'Answer 10 gym drills correctly.', test: function () { return (PB.S.gym.correct || 0) >= 10; } },
+    { id: 'gym2', mark: 'G+', name: 'Gym Regular', desc: 'Answer 100 gym drills correctly.', test: function () { return (PB.S.gym.correct || 0) >= 100; } },
+    { id: 'gym3', mark: 'G★', name: 'Iron Physicist', desc: 'Answer 500 gym drills correctly.', test: function () { return (PB.S.gym.correct || 0) >= 500; } },
+    { id: 'combo5', mark: '×5', name: 'On a Roll', desc: 'Reach a ×5 combo in the gym.', test: function () { return (PB.S.gym.bestCombo || 0) >= 5; } },
+    { id: 'combo15', mark: '×15', name: 'Unstoppable', desc: 'Reach a ×15 combo in the gym.', test: function () { return (PB.S.gym.bestCombo || 0) >= 15; } },
+    { id: 'sprint10', mark: 'S', name: 'Sprinter', desc: 'Score 10 in a gym sprint.', test: function () { return (PB.S.gym.sprintBest || 0) >= 10; } },
+    { id: 'sprint20', mark: 'S+', name: 'Lightning Round', desc: 'Score 20 in a gym sprint.', test: function () { return (PB.S.gym.sprintBest || 0) >= 20; } },
+    { id: 'quest1', mark: 'Q', name: 'Questing', desc: 'Complete all three daily quests in a day.', test: function () { return Object.keys(PB.S.questDays || {}).length >= 1; } },
+    { id: 'quest7', mark: 'Q7', name: 'Quest Champion', desc: 'Complete all daily quests on 7 days.', test: function () { return Object.keys(PB.S.questDays || {}).length >= 7; } },
+    { id: 'beyond', mark: 'β', name: 'Beyond the Syllabus', desc: 'Master all three olympiad-extension chapters.', test: function () { return chaptersDone([22, 23, 24]) === 3; } },
     { id: 'all', mark: '∞', name: 'Theory of Everything', desc: 'Solve every problem in the book.', test: function () { const a = PB.allProblems(); return a.length > 0 && a.every(function (p) { return PB.S.solved[p.id]; }); } }
   ];
   PB.checkBadges = function () {

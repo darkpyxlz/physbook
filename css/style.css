@@ -661,3 +661,45 @@ math-field.maker-field::part(menu-toggle) { display: none; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Quests ---------- */
+.quests { margin-top: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.quests-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.quests-head h3 { font-size: 16px; font-weight: 700; }
+.quest-list { display: grid; gap: 8px; }
+.quest { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.q-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-weight: 800; font-size: 13px; color: var(--accent-ink); }
+.quest.done .q-check { background: var(--good); border-color: var(--good); }
+.quest.done .q-text { color: var(--ink-2); text-decoration: line-through; }
+.q-text { font-weight: 600; font-size: 14px; }
+.q-bar { height: 6px; border-radius: 99px; background: var(--surface-2); margin-top: 4px; overflow: hidden; }
+.q-bar span { display: block; height: 100%; background: var(--points); border-radius: 99px; }
+.quest.done .q-bar span { background: var(--good); }
+.q-meta { font-family: var(--f-mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+
+/* ---------- Gym ---------- */
+.gym-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+.gym-stats .stat { background: var(--surface); border: 1px solid var(--line); }
+.gym-timer { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-bottom: 12px; border: 1px solid var(--line); }
+.gym-timer span { display: block; height: 100%; width: 100%; background: var(--accent); transition: width .2s linear; }
+.gym-timer.low span { background: var(--bad); }
+.gym-card { margin-bottom: 10px; transition: box-shadow .3s; }
+.gym-card.flash-ok { box-shadow: 0 0 0 3px var(--good-soft); border-color: var(--good); }
+.gym-card.flash-no { box-shadow: 0 0 0 3px var(--bad-soft); border-color: var(--bad); }
+.combo-chip { font-family: var(--f-mono); font-weight: 700; font-size: 12.5px; color: #fff; background: var(--points); border-radius: 6px; padding: 2px 8px; animation: pop .3s ease; }
+@keyframes pop { from { transform: scale(1.4); } to { transform: none; } }
+.sprint-intro { text-align: center; padding: 30px 18px; }
+.sprint-intro h2 { font-size: 24px; margin-bottom: 6px; }
+.sprint-intro p { color: var(--ink-2); max-width: 46ch; margin: 6px auto 18px; font-family: var(--f-body); font-size: 16px; }
+.sprint-score { font-family: var(--f-display); font-weight: 800; font-size: 72px; line-height: 1; color: var(--accent); font-stretch: 115%; }
+kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--surface); }
+
+/* ---------- Heatmap ---------- */
+.heatmap-wrap { overflow-x: auto; padding-bottom: 4px; }
+.heatmap { display: grid; grid-template-rows: repeat(7, 13px); grid-auto-flow: column; grid-auto-columns: 13px; gap: 3px; width: max-content; }
+.hm { border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); }
+.hm.l1 { background: color-mix(in srgb, var(--accent) 25%, var(--surface)); }
+.hm.l2 { background: color-mix(in srgb, var(--accent) 50%, var(--surface)); }
+.hm.l3 { background: color-mix(in srgb, var(--accent) 75%, var(--surface)); }
+.hm.l4 { background: var(--accent); }
+@media (max-width: 640px) { .gym-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

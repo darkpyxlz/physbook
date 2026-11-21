@@ -88,12 +88,12 @@
     box.append(lvl, st, th);
   }
 
-  const PARTS = ['Foundations', 'Mechanics', 'Thermal Physics', 'Electricity & Magnetism', 'Optics', 'Modern Physics'];
+  const PARTS = ['Foundations', 'Mechanics', 'Thermal Physics', 'Electricity & Magnetism', 'Optics', 'Modern Physics', 'Olympiad Extensions'];
   function renderSidebar(activeId) {
     const nav = $('#sidebar');
     nav.innerHTML = '';
     nav.appendChild(h('div', { class: 'rail-group', text: 'Book' }));
-    [['home', 'Dashboard'], ['arena', 'Problem arena'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
+    [['home', 'Dashboard'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
       nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
     });
     PARTS.forEach(function (part) {
@@ -128,6 +128,7 @@
   PB.on(function (ev) {
     if (ev.type === 'xp' && ev.amount > 0) toast('<span class="tx">+' + ev.amount + ' XP</span> ' + ev.reason);
     if (ev.type === 'levelup') toast('<span class="tx">LV ' + ev.level + '</span> You are now a ' + ev.title, 'badge-t');
+    if (ev.type === 'quest') toast('<span class="tx">Quest</span> ' + ev.quest.text + ' <span class="tx">+' + ev.quest.xp + ' XP</span>', 'badge-t');
     if (ev.type === 'badge') toast('<span class="tx">Badge</span> ' + ev.badge.name + ' <span class="tx">+25 XP</span>', 'badge-t');
     if (ev.type === 'xp' || ev.type === 'badge' || ev.type === 'levelup') { renderHUD(); renderSidebar(currentActive); }
   });
@@ -401,6 +402,7 @@
         h('p', { class: 'lede', html: 'A physics course that runs from units and vectors to quantum and nuclear physics, in the order of the standard university texts. Every chapter ends in a scored problem set that climbs from concept checks to olympiad-level problems.' }),
         h('div', { class: 'hero-cta' }, [
           h('a', { class: 'btn primary', href: '#ch-' + cont.id, text: (S().lastChapter ? 'Continue: ' : 'Start: ') + cont.num + '. ' + cont.title }),
+          h('a', { class: 'btn', href: '#gym', text: 'Practice gym' }),
           h('a', { class: 'btn', href: '#arena', text: 'Problem arena' }),
           h('a', { class: 'btn', href: '#solver', text: 'Equation board' }),
           h('a', { class: 'btn ghost', href: '#formulas', text: 'Formula sheet' })
@@ -430,13 +432,14 @@
       ]));
     }
 
+    if (PB.homeExtras) PB.homeExtras(wrap);
     wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'How scoring works' })]));
     const tbl = h('div', { class: 'table-wrap' });
     tbl.innerHTML = '<table class="prose" style="font-size:14px;margin:0;width:100%"><thead><tr><th>Tier</th><th>Base points</th><th>What it tests</th></tr></thead><tbody>' +
       '<tr><td><span class="chip concept">Concept</span></td><td><span class="pts">10</span></td><td>Do you understand the idea? Quick multiple choice.</td></tr>' +
       '<tr><td><span class="chip core">Core</span></td><td><span class="pts">20</span></td><td>Textbook-standard numerical problems.</td></tr>' +
       '<tr><td><span class="chip olympiad">Olympiad</span></td><td><span class="pts">40</span></td><td>Multi-step problems in the style of national and international olympiads.</td></tr>' +
-      '</tbody></table><p style="color:var(--ink-2);font-size:13.5px;margin:10px 0 0">Each hint costs 25% of the base points. A wrong numerical answer costs 15%, a wrong multiple-choice answer 34%. A problem never drops below 20% while you keep trying. Viewing the solution forfeits the problem. The daily challenge pays double, every badge adds 25 XP, and each section read or lab explored adds 5 XP.</p>';
+      '</tbody></table><p style="color:var(--ink-2);font-size:13.5px;margin:10px 0 0">Each hint costs 25% of the base points. A wrong numerical answer costs 15%, a wrong multiple-choice answer 34%. A problem never drops below 20% while you keep trying. Viewing the solution forfeits the problem. The daily challenge pays double, every badge adds 25 XP, and each section read or lab explored adds 5 XP. Three daily quests pay bonus XP, and the practice gym pays for streaks of correct drills (combo multiplier up to ×3).</p>';
     wrap.appendChild(tbl);
 
     wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Chapters' }), h('p', { text: 'Rings show reading plus problems completed. Stars mark finished concept, core and olympiad sets.' })]));
@@ -642,6 +645,7 @@
       ])
     ]);
     wrap.appendChild(card);
+    if (PB.profileExtras) PB.profileExtras(wrap);
     wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Badges' }), h('p', { text: Object.keys(S().badges).length + ' of ' + PB.BADGES.length + ' earned' })]));
     const grid = h('div', { class: 'badge-grid' });
     PB.BADGES.forEach(function (b) {

@@ -15,25 +15,28 @@ An interactive physics textbook for students working toward physics olympiads (a
 | 2 | Kinematics | Projectile launcher with air drag |
 | 3 | Newton's Laws and Forces | Block on an incline |
 | 4 | Work, Energy and Power | Energy on a track |
-| 5 | Momentum and Collisions | Collision track (with centre-of-mass frame) |
+| 5 | Momentum and Collisions | Collision track (with centre-of-mass frame), rocket staging |
 | 6 | Rotational Dynamics | Rolling race |
 | 7 | Gravitation and Orbits | Orbit launcher (Kepler's second law) |
 | 8 | Oscillations | Driven, damped oscillator |
-| 9 | Fluids | Sink or float |
+| 9 | Fluids | Sink or float, draining tank |
 | 10 | Waves and Sound | Superposition, Doppler and shock cones |
-| 11 | Temperature, Heat and Kinetic Theory | Gas in a box (Maxwell distribution, pressure) |
+| 11 | Temperature, Heat and Kinetic Theory | Gas in a box (Maxwell distribution, pressure), blackbody spectrum |
 | 12 | The Laws of Thermodynamics | Engine cycles on a P–V diagram |
 | 13 | Electrostatics | Field lines and equipotentials |
 | 14 | Capacitors, Current and DC Circuits | RC charging and discharging |
-| 15 | Magnetic Fields and Forces | Charges in E and B fields |
-| 16 | Induction, AC Circuits and EM Waves | Series RLC with phasors |
+| 15 | Magnetic Fields and Forces | Charges in E and B fields, fields of currents |
+| 16 | Induction, AC Circuits and EM Waves | Series RLC with phasors, magnet through a coil |
 | 17 | Geometric Optics | Ray diagram bench, refraction and TIR |
 | 18 | Wave Optics | Slits and gratings |
-| 19 | Special Relativity | Minkowski diagram |
+| 19 | Special Relativity | Minkowski diagram, light clocks |
 | 20 | Quantum and Atomic Physics | Photoelectric effect, particle in a box |
 | 21 | Nuclear and Particle Physics | Radioactive decay (with decay chains) |
+| 22 | Analytical Mechanics | Effective potential explorer, chaos in a double pendulum |
+| 23 | Astrophysics and Cosmology | Blackbody spectrum, exoplanet transit |
+| 24 | Experimental Physics and Data Analysis | Measuring g with a pendulum (least-squares fit) |
 
-231 scored problems in total: 64 concept, 105 core and 62 olympiad.
+Chapters 22–24 form an *Olympiad Extensions* part. In total there are 36 labs and 348 scored problems: 94 concept, 162 core and 92 olympiad. On top of these, the practice gym generates unlimited drills from 72 randomised templates (three per chapter).
 
 ## Equation board
 
@@ -64,7 +67,10 @@ The algebra is [SymPy](https://www.sympy.org) running in the browser through [Py
 - Each hint costs 25% of the base points; a wrong numerical answer costs 15% and a wrong multiple-choice answer 34%. A problem never drops below 20% while you keep trying. Viewing the solution forfeits the problem.
 - Reading a section or exploring a lab earns 5 XP. Badges add 25 XP each.
 - A daily challenge (a core or olympiad problem picked by date) pays double.
-- XP moves you up an 11-level ladder from *Curious Observer* to *Absolute Champion*. Day streaks, chapter stars (one each for finishing the concept, core and olympiad sets) and 25 badges track progress.
+- XP moves you up an 11-level ladder from *Curious Observer* to *Absolute Champion*. Day streaks, chapter stars (one each for finishing the concept, core and olympiad sets) and 35 badges track progress.
+- **Daily quests**: three goals a day (for example "solve an olympiad problem" or "reach a ×5 combo") each pay bonus XP, plus 40 XP for finishing all three.
+- **Practice gym**: endless drills with fresh numbers every time. Consecutive correct answers build a combo multiplier (up to ×3). **Sprint** mode counts correct answers in 90 seconds and keeps your best. Gym XP is capped at 200 a day.
+- The **Level & badges** page shows a 20-week activity heatmap and gym statistics.
 - Numerical answers accept scientific notation (`3e8`, `3×10^8`) and simple expressions (`2*pi*sqrt(2)`), and are graded within a tolerance (usually 2%).
 
 Progress is stored in the browser's `localStorage`. The **Level & badges** page can export it as text and import it on another device.
@@ -87,6 +93,10 @@ css/style.css         all styles (light and dark themes)
 js/core.js            content registry, scoring, levels, badges, answer parser
 js/sims.js            lab engine helpers and labs for chapters 1–10
 js/sims2.js           labs for chapters 11–21
+js/sims3.js           added labs (rocket, tank, blackbody, wires, coil, light clock) and labs for chapters 22–24
+js/practice.js        extra problems and labs appended to chapters 1–21
+js/drills.js          randomised drill generators for the practice gym
+js/gym.js             practice gym, daily quests panel and activity heatmap
 js/chapters/NN-*.js   one file per chapter: sections, labs, formulas, problems
 js/app.js             routing, views, problem cards, HUD
 js/solver.js          equation board UI (cards, wires, menus, known values)
