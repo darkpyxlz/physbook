@@ -1,4 +1,4 @@
-/* Physbook core: content registry, saved progress, scoring, levels, badges, answer parsing. */
+/* Scibook core: content registry, saved progress, scoring, levels, badges, answer parsing. */
 (function () {
   'use strict';
   const PB = (window.PB = window.PB || {});
@@ -6,7 +6,26 @@
   PB.sims = {};
   PB.R = String.raw;
 
+  /* ---------- Subjects ---------- */
+  PB.SUBJECTS = [
+    { id: 'physics', name: 'Physics', mark: 'Φ', blurb: 'From units and vectors to quantum and nuclear physics, with olympiad extensions in analytical mechanics, astrophysics and experimental work.',
+      parts: ['Foundations', 'Mechanics', 'Thermal Physics', 'Electricity & Magnetism', 'Optics', 'Modern Physics', 'Olympiad Extensions'] },
+    { id: 'chemistry', name: 'Chemistry', mark: 'Ch', blurb: 'Atoms, bonding, energetics, equilibria, kinetics, electrochemistry and organic chemistry, up to olympiad level.',
+      parts: ['Foundations', 'Physical Chemistry', 'Inorganic Chemistry', 'Organic Chemistry', 'Analysis'],
+      game: { id: 'chemcorp', name: 'ChemCorp', path: 'games/chemcorp/index.html', blurb: 'An organic chemistry idle game: run real reactions, research 145 of them and automate a chemical plant.' } },
+    { id: 'biology', name: 'Biology', mark: 'Bi', blurb: 'Cells, biochemistry, genetics, physiology, evolution and ecology, with the quantitative tools of olympiad biology.',
+      parts: ['Cells and Molecules', 'Genetics', 'Physiology', 'Evolution and Ecology'],
+      game: { id: 'cytos', name: 'Cytos', path: 'games/cytos/index.html', blurb: 'You are a cell: express genes, build organelles, respire, signal, repair DNA and fight viruses.' } },
+    { id: 'astronomy', name: 'Astronomy', mark: 'As', blurb: 'The sky, the Solar System, stars, galaxies and the universe, with the observational skills of astronomy olympiads.',
+      parts: ['The Sky', 'The Solar System', 'Stars and Galaxies'],
+      game: { id: 'firmament', name: 'Firmament', path: 'games/firmament/index.html', blurb: 'Run a space corporation on the real night sky and colonise all 88 constellations.' } }
+  ];
+  PB.subject = function (id) { return PB.SUBJECTS.find(function (s) { return s.id === id; }); };
+  PB.chaptersOf = function (sid) { return PB.chapters.filter(function (c) { return c.subject === sid; }); };
+  const subjOrder = function (c) { return PB.SUBJECTS.findIndex(function (s) { return s.id === c.subject; }); };
+
   PB.addChapter = function (ch) {
+    ch.subject = ch.subject || 'physics';
     ch.problems = ch.problems || [];
     ch.problems.forEach(function (p, i) {
       p.chapter = ch.id;
@@ -15,7 +34,7 @@
       if (!p.points) p.points = { concept: 10, core: 20, olympiad: 40 }[p.level] || 10;
     });
     PB.chapters.push(ch);
-    PB.chapters.sort(function (a, b) { return a.num - b.num; });
+    PB.chapters.sort(function (a, b) { return subjOrder(a) - subjOrder(b) || a.num - b.num; });
   };
   // Append extra problems to an already registered chapter, keeping existing ids stable.
   PB.addProblems = function (chId, list) {
@@ -40,7 +59,7 @@
       xp: 0, solved: {}, attempts: {}, hints: {}, revealed: {}, read: {}, labs: {},
       streak: { last: null, count: 0, best: 0 }, badges: {}, dailyDone: {}, firstTryRun: 0,
       lastChapter: null, theme: null, created: Date.now(),
-      activity: {}, day: {}, quests: {}, questDays: {},
+      activity: {}, day: {}, quests: {}, questDays: {}, subject: 'physics', gameSync: {}, gameXP: {}, gameDayXP: {},
       gym: { correct: 0, answered: 0, bestCombo: 0, sprintBest: 0, dayXP: {} }
     };
   }
@@ -59,7 +78,7 @@
   PB.exportProgress = function () { return JSON.stringify(PB.S); };
   PB.importProgress = function (txt) {
     const obj = JSON.parse(txt);
-    if (typeof obj !== 'object' || obj === null || typeof obj.xp !== 'number') throw new Error('That text is not a Physbook progress export.');
+    if (typeof obj !== 'object' || obj === null || typeof obj.xp !== 'number') throw new Error('That text is not a Scibook progress export.');
     PB.S = Object.assign(fresh(), obj); PB.save();
   };
   PB.resetProgress = function () { const t = PB.S.theme; PB.S = fresh(); PB.S.theme = t; PB.save(); };
@@ -102,7 +121,11 @@
     { xp: 2800, title: 'National Squad' },
     { xp: 3600, title: 'Olympiad Medalist' },
     { xp: 4500, title: 'Gold Medalist' },
-    { xp: 5500, title: 'Absolute Champion' }
+    { xp: 5500, title: 'Absolute Champion' },
+    { xp: 7000, title: 'Cross-Disciplinary' },
+    { xp: 9000, title: 'Natural Philosopher' },
+    { xp: 11500, title: 'Polymath' },
+    { xp: 14500, title: 'Laureate' }
   ];
   PB.levelInfo = function (xp) {
     xp = xp == null ? PB.S.xp : xp;
@@ -283,6 +306,26 @@
     PB.save();
   };
 
+  /* ---------- Game schools pay XP ---------- */
+  // Each game counts correct quiz-school answers in its own save. Scibook pays 2 XP per new correct answer, up to 100 a day.
+  PB.GAME_DAILY_CAP = 100;
+  PB.syncGame = function (gameId, correctNow) {
+    if (typeof correctNow !== 'number' || !isFinite(correctNow)) return 0;
+    const last = PB.S.gameSync[gameId];
+    PB.S.gameSync[gameId] = correctNow;
+    if (last == null || correctNow <= last) { PB.save(); return 0; }
+    const t = dayKey(), used = PB.S.gameDayXP[t] || 0;
+    const xp = Math.min(2 * (correctNow - last), Math.max(0, PB.GAME_DAILY_CAP - used));
+    if (xp > 0) {
+      PB.S.gameDayXP[t] = used + xp;
+      PB.S.gameXP[gameId] = (PB.S.gameXP[gameId] || 0) + xp;
+      touchStreak();
+      addXP(xp, 'Quiz answers in ' + gameId);
+    }
+    PB.checkBadges(); PB.save();
+    return xp;
+  };
+
   /* ---------- Practice gym ---------- */
   PB.drills = {};
   PB.addDrills = function (chId, list) { PB.drills[chId] = (PB.drills[chId] || []).concat(list.map(function (d) { d.chapter = chId; return d; })); };
@@ -342,9 +385,13 @@
 
   /* ---------- Badges ---------- */
   const solvedList = function () { return Object.keys(PB.S.solved).map(PB.problem).filter(Boolean); };
-  const chaptersDone = function (ids) {
-    return PB.chapters.filter(function (c) { return (!ids || ids.indexOf(c.num) >= 0) && c.problems.length && c.problems.every(function (p) { return PB.S.solved[p.id]; }); }).length;
+  // Chapters fully solved. ids are chapter numbers within a subject (physics unless given).
+  const chaptersDone = function (ids, subject) {
+    subject = subject || 'physics';
+    return PB.chapters.filter(function (c) { return (!ids || (c.subject === subject && ids.indexOf(c.num) >= 0)) && c.problems.length && c.problems.every(function (p) { return PB.S.solved[p.id]; }); }).length;
   };
+  const subjectDone = function (sid) { return PB.chaptersOf(sid).filter(function (c) { return c.problems.length && c.problems.every(function (p) { return PB.S.solved[p.id]; }); }).length; };
+  const solvedIn = function (sid) { return solvedList().filter(function (p) { return PB.chapter(p.chapter).subject === sid; }).length; };
   PB.BADGES = [
     { id: 'first', mark: '1', name: 'First Contact', desc: 'Solve your first problem.', test: function () { return solvedList().length >= 1; } },
     { id: 'ten', mark: '10', name: 'Warming Up', desc: 'Solve 10 problems.', test: function () { return solvedList().length >= 10; } },
@@ -380,6 +427,14 @@
     { id: 'quest1', mark: 'Q', name: 'Questing', desc: 'Complete all three daily quests in a day.', test: function () { return Object.keys(PB.S.questDays || {}).length >= 1; } },
     { id: 'quest7', mark: 'Q7', name: 'Quest Champion', desc: 'Complete all daily quests on 7 days.', test: function () { return Object.keys(PB.S.questDays || {}).length >= 7; } },
     { id: 'beyond', mark: 'β', name: 'Beyond the Syllabus', desc: 'Master all three olympiad-extension chapters.', test: function () { return chaptersDone([22, 23, 24]) === 3; } },
+    { id: 'chem10', mark: 'Ch', name: 'Bench Chemist', desc: 'Solve 10 chemistry problems.', test: function () { return solvedIn('chemistry') >= 10; } },
+    { id: 'chem5', mark: 'Ch5', name: 'Master Chemist', desc: 'Master 5 chemistry chapters.', test: function () { return subjectDone('chemistry') >= 5; } },
+    { id: 'bio10', mark: 'Bi', name: 'Field Biologist', desc: 'Solve 10 biology problems.', test: function () { return solvedIn('biology') >= 10; } },
+    { id: 'bio5', mark: 'Bi5', name: 'Master Biologist', desc: 'Master 5 biology chapters.', test: function () { return subjectDone('biology') >= 5; } },
+    { id: 'astro10', mark: 'As', name: 'Stargazer', desc: 'Solve 10 astronomy problems.', test: function () { return solvedIn('astronomy') >= 10; } },
+    { id: 'astro5', mark: 'As5', name: 'Master Astronomer', desc: 'Master 5 astronomy chapters.', test: function () { return subjectDone('astronomy') >= 5; } },
+    { id: 'poly', mark: 'Π', name: 'Polymath', desc: 'Solve a problem in every subject.', test: function () { return PB.SUBJECTS.every(function (s) { return solvedIn(s.id) >= 1; }); } },
+    { id: 'gamer', mark: 'Gm', name: 'Learning by Playing', desc: 'Earn XP from a game\u2019s quiz school.', test: function () { return Object.keys(PB.S.gameXP || {}).some(function (k) { return PB.S.gameXP[k] > 0; }); } },
     { id: 'all', mark: '∞', name: 'Theory of Everything', desc: 'Solve every problem in the book.', test: function () { const a = PB.allProblems(); return a.length > 0 && a.every(function (p) { return PB.S.solved[p.id]; }); } }
   ];
   PB.checkBadges = function () {

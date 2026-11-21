@@ -1,4 +1,4 @@
-/* Physbook labs, part 2: thermal, electromagnetism, optics and modern physics (chapters 11–21). */
+/* Scibook labs, part 2: thermal, electromagnetism, optics and modern physics (chapters 11–21). */
 (function () {
   'use strict';
   const PB = window.PB, U = PB.simUtil;

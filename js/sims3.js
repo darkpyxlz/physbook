@@ -1,4 +1,4 @@
-/* Physbook labs, part 3: added labs for existing chapters and the olympiad-extension chapters. */
+/* Scibook labs, part 3: added labs for existing chapters and the olympiad-extension chapters. */
 (function () {
   'use strict';
   const PB = window.PB, U = PB.simUtil;

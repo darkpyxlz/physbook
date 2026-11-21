@@ -1,4 +1,4 @@
-/* Physbook practice-gym drill generators. Each gen(r) returns { q, answer, unit, solution, tol? }.
+/* Scibook practice-gym drill generators. Each gen(r) returns { q, answer, unit, solution, tol? }.
    r is a seeded random source with r.int(lo, hi), r.step(lo, hi, step) and r.pick(array). */
 (function () {
   const R = PB.R, D = PB.addDrills, g = 9.8;

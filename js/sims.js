@@ -1,4 +1,4 @@
-/* Physbook labs, part 1: shared drawing helpers and the mechanics labs (chapters 1–10). */
+/* Scibook labs, part 1: shared drawing helpers and the mechanics labs (chapters 1–10). */
 (function () {
   'use strict';
   const PB = window.PB;

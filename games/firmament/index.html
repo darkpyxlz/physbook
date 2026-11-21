@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#05070f">
+<title>Firmament</title>
+<meta name="description" content="A corporate expansion game on the real night sky: found a space company, colonise every star, research human technology, catalogue the Messier objects and develop all 88 constellations.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305070f'/%3E%3Cpath d='M16 5l2.7 8.3H27l-6.8 5 2.6 8.2L16 21.6 9.2 26.5l2.6-8.2L5 13.3h8.3z' fill='%23ffd98a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="sky" aria-label="Star chart"></canvas>
+
+<header id="hud" hidden>
+  <div class="res" title="Cash: earned by every colony and spent on expansion">
+    <span class="ico gold">$</span><b id="r-cash">0</b><small id="r-cash-rate"></small>
+  </div>
+  <div class="res" title="Research points: spent on technology and Messier surveys">
+    <span class="ico cyan">◉</span><b id="r-res">0</b><small id="r-res-rate"></small>
+  </div>
+  <div class="res" data-act="open-school" style="cursor:pointer" title="Charts: earned by correct Sky School answers, spent on every colony ship and takeover fleet (S)" aria-keyshortcuts="S">
+    <span class="ico violet">✧</span><b id="r-charts">0</b>
+  </div>
+  <div class="res" data-act="open-fleets" style="cursor:pointer" title="Ships out / fleet slots. Click for details (F)" aria-keyshortcuts="F">
+    <span class="ico">➤</span><b id="r-fleet">0/3</b><small id="r-queue"></small>
+  </div>
+  <button class="corp" id="corp-chip" data-act="open-corp" title="Your corporation: rank, share price, technology and buildings (O)" aria-keyshortcuts="O">
+    <b id="corp-name"></b><small><span id="corp-rank"></span><span id="corp-price"></span></small>
+  </button>
+  <div class="grow"></div>
+  <div class="hud-btns">
+    <button class="btn" data-act="open-quests" title="Quests and contracts (Q)" aria-keyshortcuts="Q">Quests<span class="qbadge" id="qbadge" hidden></span><kbd class="k k-only">Q</kbd></button>
+    <button class="btn gold" data-act="open-school" title="Sky School: quizzes that pay charts, which colony ships need (S)" aria-keyshortcuts="S">Sky School<kbd class="k k-only">S</kbd></button>
+    <button class="btn" data-act="open-codex" title="Codex: constellations, Messier objects, named stars and your learning progress (C)" aria-keyshortcuts="C">Codex<kbd class="k k-only">C</kbd></button>
+    <button class="btn ghost" data-act="open-menu" aria-label="Menu" title="Menu (Esc), keyboard shortcuts (?)" aria-keyshortcuts="Escape">☰</button>
+  </div>
+</header>
+
+<div id="banner" hidden></div>
+<div id="attn" hidden></div>
+<aside id="panel" hidden></aside>
+<div id="toasts" aria-live="polite"></div>
+<div id="tooltip" hidden></div>
+
+<div id="zoomctl" hidden>
+  <button class="btn ghost" data-act="zoom-in" aria-label="Zoom in">+</button>
+  <button class="btn ghost" data-act="zoom-out" aria-label="Zoom out">−</button>
+  <button class="btn ghost" data-act="go-home" aria-label="Centre on headquarters" title="Headquarters">⌂</button>
+  <button class="btn ghost" id="sky-btn" data-act="toggle-sky" aria-label="Show or hide the ecliptic and meteor shower radiants" title="Ecliptic and meteor showers (Y)" aria-keyshortcuts="Y">☄</button>
+  <button class="btn ghost" id="borders-btn" data-act="toggle-borders" aria-label="Show or hide empire borders" title="Empire borders (V)" aria-keyshortcuts="V">◩</button>
+</div>
+
+<div id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><h2 id="modal-title"></h2><button class="btn ghost" data-act="close-modal" aria-label="Close">✕</button></div>
+    <div id="modal-tabs"></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="start" hidden></div>
+<noscript><p style="padding:2rem;color:#fff">Firmament needs JavaScript.</p></noscript>
+
+<script src="js/data.js"></script>
+<script src="js/corp.js"></script>
+<script src="js/yearsky.js"></script>
+<script src="js/astro-a.js"></script>
+<script src="js/astro-b.js"></script>
+<script src="js/astro-c.js"></script>
+<script src="js/astro.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/quests.js"></script>
+<script src="js/pics.js"></script>
+<script src="js/figs.js"></script>
+<script src="js/figs-orbits.js"></script>
+<script src="js/figs-stars.js"></script>
+<script src="js/territory.js"></script>
+<script src="js/sky.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

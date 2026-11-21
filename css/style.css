@@ -29,12 +29,13 @@
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --hud-h: 60px;
+  --s-physics: #2350c8; --s-chemistry: #0d7f6e; --s-biology: #3f8a1f; --s-astronomy: #6a3fc0;
   --rail-w: 290px;
   --radius: 10px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0d1320; --surface: #141c2d; --surface-2: #1a2438; --ink: #e4e9f3; --ink-2: #a3aec6;
+    --s-physics: #7c9cff; --s-chemistry: #3fd0b6; --s-biology: #8bd45f; --s-astronomy: #b392ff; --paper: #0d1320; --surface: #141c2d; --surface-2: #1a2438; --ink: #e4e9f3; --ink-2: #a3aec6;
     --ink-3: #75809a; --line: #27334b; --grid: rgba(124, 156, 255, 0.07); --accent: #7c9cff;
     --accent-ink: #0d1320; --accent-soft: rgba(124, 156, 255, 0.14); --points: #f0a145;
     --points-soft: rgba(240, 161, 69, 0.14); --good: #4cc27f; --good-soft: rgba(76, 194, 127, 0.13);
@@ -44,7 +45,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --paper: #0d1320; --surface: #141c2d; --surface-2: #1a2438; --ink: #e4e9f3; --ink-2: #a3aec6;
+  --s-physics: #7c9cff; --s-chemistry: #3fd0b6; --s-biology: #8bd45f; --s-astronomy: #b392ff; --paper: #0d1320; --surface: #141c2d; --surface-2: #1a2438; --ink: #e4e9f3; --ink-2: #a3aec6;
   --ink-3: #75809a; --line: #27334b; --grid: rgba(124, 156, 255, 0.07); --accent: #7c9cff;
   --accent-ink: #0d1320; --accent-soft: rgba(124, 156, 255, 0.14); --points: #f0a145;
   --points-soft: rgba(240, 161, 69, 0.14); --good: #4cc27f; --good-soft: rgba(76, 194, 127, 0.13);
@@ -703,3 +704,45 @@ kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line)
 .hm.l3 { background: color-mix(in srgb, var(--accent) 75%, var(--surface)); }
 .hm.l4 { background: var(--accent); }
 @media (max-width: 640px) { .gym-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* ---------- Subjects ---------- */
+.subj-physics { --subj: var(--s-physics); }
+.subj-chemistry { --subj: var(--s-chemistry); }
+.subj-biology { --subj: var(--s-biology); }
+.subj-astronomy { --subj: var(--s-astronomy); }
+.subj-tabs { display: flex; gap: 4px; margin-left: 18px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.subj-tabs::-webkit-scrollbar { display: none; }
+.subj-tab { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 8px; text-decoration: none; color: var(--ink-2); font-weight: 600; font-size: 14px; white-space: nowrap; border: 1px solid transparent; }
+.subj-tab:hover { background: var(--surface-2); color: var(--ink); }
+.subj-tab.active { color: var(--subj); background: color-mix(in srgb, var(--subj) 12%, transparent); border-color: color-mix(in srgb, var(--subj) 35%, transparent); }
+.subj-mark { font-family: var(--f-mono); font-size: 11px; font-weight: 700; width: 24px; height: 22px; border-radius: 5px; display: grid; place-items: center; background: var(--subj); color: #fff; }
+.rail-subject { color: var(--ink); font-size: 12px; }
+.subj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.subj-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; border-top: 4px solid var(--subj); display: flex; flex-direction: column; }
+.subj-main { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; text-decoration: none; color: var(--ink); flex: 1; }
+.subj-main:hover { background: var(--surface-2); }
+.subj-main h3 { font-size: 18px; font-weight: 750; }
+.subj-main p { margin: 2px 0 0; color: var(--ink-2); font-size: 12.5px; }
+.subj-badge { width: 40px; height: 40px; border-radius: 10px; background: var(--subj); color: #fff; display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; font-size: 16px; }
+.subj-badge.lg { width: 64px; height: 64px; font-size: 24px; border-radius: 14px; }
+.subj-game { border-top: 1px solid var(--line); padding: 9px 16px; font-size: 13.5px; color: var(--subj); text-decoration: none; }
+.subj-game:hover { background: color-mix(in srgb, var(--subj) 8%, transparent); }
+.subj-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; padding-bottom: 8px; }
+.subj-head h1 { font-size: clamp(30px, 4.4vw, 44px); font-weight: 800; font-stretch: 112%; margin-top: 4px; color: var(--ink); }
+.subj-head .eyebrow { color: var(--subj); }
+.game-card { margin: 22px 0 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; border-left: 4px solid var(--subj, var(--accent)); }
+.game-chemcorp { --subj: var(--s-chemistry); } .game-cytos { --subj: var(--s-biology); } .game-firmament { --subj: var(--s-astronomy); }
+.game-head { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.game-head h3 { font-size: 20px; font-weight: 750; }
+.game-head p { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; max-width: 60ch; }
+.game-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 14px; }
+.game-note { margin: 12px 0 0; color: var(--ink-2); font-size: 13px; }
+.main.main-game { padding: 0; }
+.game-wrap { display: flex; flex-direction: column; height: calc(100vh - var(--hud-h) - env(safe-area-inset-top, 0px)); }
+.game-bar { display: flex; align-items: center; gap: 12px; padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); background: var(--surface); flex-wrap: wrap; }
+.game-bar-note { color: var(--ink-3); font-size: 12.5px; flex: 1; min-width: 0; }
+.game-frame { flex: 1; width: 100%; border: 0; background: #fff; }
+.formula-subject { font-size: 24px; font-weight: 750; margin: 30px 0 12px; scroll-margin-top: 80px; }
+@media (max-width: 1100px) { .hud-title, .xpbar { display: none; } }
+@media (max-width: 860px) { .subj-tabs { margin-left: 4px; } .subj-name { display: none; } .subj-tab { padding: 5px 6px; } .game-bar-note { display: none; } }
+@media (max-width: 560px) { .subj-head { grid-template-columns: auto minmax(0, 1fr); } .subj-head .ring { display: none; } }

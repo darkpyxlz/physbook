@@ -1,4 +1,4 @@
-/* Physbook practice gym (endless and sprint drills), daily quests panel and activity heatmap. */
+/* Scibook practice gym (endless and sprint drills), daily quests panel and activity heatmap. */
 (function () {
   'use strict';
   const PB = window.PB, h = PB.h, S = function () { return PB.S; };
@@ -6,6 +6,7 @@
 
   function drillPool(topic) {
     if (topic === 'all') return Object.keys(PB.drills).reduce(function (a, k) { return a.concat(PB.drills[k]); }, []);
+    if (topic.indexOf('subj:') === 0) { const sid = topic.slice(5); return PB.chaptersOf(sid).reduce(function (a, c) { return a.concat(PB.drills[c.id] || []); }, []); }
     return PB.drills[topic] || [];
   }
   function makeDrill(topic) {
@@ -43,8 +44,15 @@
 
     const controls = h('div', { class: 'prob-filters', style: 'margin-top:18px' });
     const sel = h('select', { class: 'filter-select', id: 'gym-topic', 'aria-label': 'Topic', onchange: function () { st.topic = sel.value; st.combo = 0; next(); } });
-    sel.appendChild(h('option', { value: 'all', text: 'Mixed: every chapter' }));
-    PB.chapters.forEach(function (c) { if (PB.drills[c.id]) sel.appendChild(h('option', { value: c.id, text: c.num + '. ' + c.title + ' (' + PB.drills[c.id].length + ' drill types)' })); });
+    sel.appendChild(h('option', { value: 'all', text: 'Mixed: every science' }));
+    PB.SUBJECTS.forEach(function (sub) {
+      const chs = PB.chaptersOf(sub.id).filter(function (c) { return PB.drills[c.id]; });
+      if (!chs.length) return;
+      sel.appendChild(h('option', { value: 'subj:' + sub.id, text: 'Mixed: all of ' + sub.name }));
+      const og = h('optgroup', { label: sub.name });
+      chs.forEach(function (c) { og.appendChild(h('option', { value: c.id, text: c.num + '. ' + c.title + ' (' + PB.drills[c.id].length + ')' })); });
+      sel.appendChild(og);
+    });
     sel.value = st.topic;
     const seg = h('div', { class: 'seg', role: 'group' });
     [['endless', 'Endless'], ['sprint', 'Sprint · 90 s']].forEach(function (m) {

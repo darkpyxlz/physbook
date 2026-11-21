@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cytos — Cell Biology Idle Game</title>
+  <meta name="description" content="An incremental cell-biology game: express your genes, build organelles, run the electron transport chain, fight viruses, replicate and evolve — while learning how cells really work." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="news" class="news"><span id="news-text"></span></div>
+  <header class="top">
+    <div class="brand">🧫 Cytos</div>
+    <div class="headline">You have <b id="h-atp" class="c-atp">0 ATP</b> in your cell.</div>
+    <div class="subline" id="h-rate">&nbsp;</div>
+    <div class="headline2">You have <b id="h-insight" class="c-insight">0</b> 🧠 Insight<span id="h-mut"></span></div>
+  </header>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="goal" id="goal"></div>
+
+  <main>
+    <div id="view-cell" class="view">
+      <div class="cellgrid">
+        <section class="panel col" id="p-proc"></section>
+        <section class="panel stagepanel">
+          <div class="stage"><canvas id="cv"></canvas>
+            <div class="stage-ctl">
+              <button class="sbtn" data-act="zoomIn" data-tip="Zoom in (scroll or pinch)">＋</button>
+              <button class="sbtn" data-act="zoomOut" data-tip="Zoom out">－</button>
+              <button class="sbtn" data-act="zoomReset" data-tip="Reset view">⟲</button>
+              <button class="sbtn" id="btn-stain" data-act="stain" data-tip="Toggle fluorescence microscopy stain">🔦</button>
+            </div>
+            <div class="stage-hint"><span id="zoom-level">400×</span> · scroll to zoom · drag to pan · click things to inspect</div>
+            <div id="inspect" class="inspect" hidden></div>
+          </div>
+          <div id="res-chips" class="chips"></div>
+          <div id="status-tags" class="row wrap status"></div>
+        </section>
+        <section class="panel col" id="p-build"></section>
+      </div>
+    </div>
+    <div id="view-other" class="view" hidden></div>
+  </main>
+
+  <div id="toasts"></div>
+  <div id="tooltip" hidden></div>
+  <div id="modal" hidden></div>
+  <div id="puzzle" hidden></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/puzzles.js"></script>
+  <script src="js/quizbank.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

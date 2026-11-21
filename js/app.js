@@ -1,4 +1,4 @@
-/* Physbook app: routing, views, problem cards, labs, HUD and toasts. */
+/* Scibook app: routing, views, problem cards, labs, HUD and toasts. */
 (function () {
   'use strict';
   const PB = window.PB;
@@ -71,7 +71,17 @@
   const MOON = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20 14.6A8.5 8.5 0 0 1 9.4 4a8.5 8.5 0 1 0 10.6 10.6z"/></svg>';
 
   /* ---------- HUD & sidebar ---------- */
+  function curSubject() { return PB.subject(S().subject) ? S().subject : 'physics'; }
+  function renderSubjectTabs() {
+    const nav = $('#subjectTabs');
+    if (!nav) return;
+    nav.innerHTML = '';
+    PB.SUBJECTS.forEach(function (sub) {
+      nav.appendChild(h('a', { class: 'subj-tab subj-' + sub.id + (curSubject() === sub.id && currentActive !== 'home' ? ' active' : ''), href: '#' + sub.id }, [h('span', { class: 'subj-mark', text: sub.mark }), h('span', { class: 'subj-name', text: sub.name })]));
+    });
+  }
   function renderHUD() {
+    renderSubjectTabs();
     const L = PB.levelInfo();
     const box = $('#hudStats');
     box.innerHTML = '';
@@ -88,7 +98,6 @@
     box.append(lvl, st, th);
   }
 
-  const PARTS = ['Foundations', 'Mechanics', 'Thermal Physics', 'Electricity & Magnetism', 'Optics', 'Modern Physics', 'Olympiad Extensions'];
   function renderSidebar(activeId) {
     const nav = $('#sidebar');
     nav.innerHTML = '';
@@ -96,8 +105,12 @@
     [['home', 'Dashboard'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
       nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
     });
-    PARTS.forEach(function (part) {
-      const chs = PB.chapters.filter(function (c) { return c.part === part; });
+    const sub = PB.subject(curSubject());
+    nav.appendChild(h('div', { class: 'rail-group rail-subject', text: sub.name }));
+    nav.appendChild(h('a', { class: 'rail-link' + (activeId === sub.id ? ' active' : ''), href: '#' + sub.id }, [h('span', { class: 'rail-num', text: sub.mark }), h('span', { class: 'rail-name', text: sub.name + ' home' }), null]));
+    if (sub.game) nav.appendChild(h('a', { class: 'rail-link' + (activeId === 'game-' + sub.id ? ' active' : ''), href: '#game-' + sub.id }, [h('span', { class: 'rail-num', text: '▶' }), h('span', { class: 'rail-name', text: 'Play ' + sub.game.name }), null]));
+    sub.parts.forEach(function (part) {
+      const chs = PB.chaptersOf(sub.id).filter(function (c) { return c.part === part; });
       if (!chs.length) return;
       nav.appendChild(h('div', { class: 'rail-group', text: part }));
       chs.forEach(function (c) {
@@ -204,7 +217,7 @@
         st === 'solved' ? h('span', { class: 'prob-status solved', text: '✓ Solved' }) : st === 'revealed' ? h('span', { class: 'prob-status revealed', text: 'Solution viewed' }) : null,
         h('span', { class: 'pts', text: solved ? '+' + solved.pts : st === 'revealed' ? '0' : (PB.available(p) + ' pts') })
       );
-      if (opts.showChapter) top.insertBefore(h('a', { class: 'prob-id', href: '#ch-' + ch.id + '--problems', text: ch.title }), top.children[1]);
+      if (opts.showChapter) top.insertBefore(h('a', { class: 'prob-id', href: '#ch-' + ch.id + '--problems', text: PB.subject(ch.subject).name + ' · ' + ch.title }), top.children[1]);
 
       optEls.forEach(function (b, i) {
         const isSel = p.type === 'mcq' ? selected === i : selected.indexOf(i) >= 0;
@@ -384,27 +397,48 @@
     main.innerHTML = '';
     nodes.forEach(function (n) { if (n) main.appendChild(n); });
     renderSidebar(active);
+    renderSubjectTabs();
     setDrawer(false);
   }
 
+  function chapterGrid(chs) {
+    const grid = h('div', { class: 'ch-grid' });
+    chs.forEach(function (c) {
+      const st = PB.chapterStats(c);
+      grid.appendChild(h('a', { class: 'ch-card', href: '#ch-' + c.id }, [
+        h('div', { class: 'num', text: 'Chapter ' + c.num }),
+        ring(st.progress, 42),
+        h('h3', { text: c.title }),
+        h('div', { class: 'meta' }, [stars(st.stars), h('span', { text: st.solved + '/' + st.total + ' solved' }), h('span', { text: st.earned + ' pts' })])
+      ]));
+    });
+    return grid;
+  }
+  function subjectStats(sid) {
+    const chs = PB.chaptersOf(sid);
+    let units = 0, done = 0, probs = 0, solved = 0;
+    chs.forEach(function (c) { const st = PB.chapterStats(c); units += st.total + st.sections; done += st.solved + st.read; probs += st.total; solved += st.solved; });
+    return { chapters: chs.length, progress: units ? done / units : 0, problems: probs, solved: solved, labs: chs.reduce(function (a, c) { return a + (c.labs || []).length; }, 0) };
+  }
+
   function viewHome() {
+    if (PB.syncGames) PB.syncGames();
     const L = PB.levelInfo();
     const all = PB.allProblems();
     const solvedN = Object.keys(S().solved).length;
-    const cont = S().lastChapter ? PB.chapter(S().lastChapter) : PB.chapters[0];
+    const cont = S().lastChapter && PB.chapter(S().lastChapter) ? PB.chapter(S().lastChapter) : PB.chapters[0];
     const nBadges = Object.keys(S().badges).length;
     const wrap = h('div', { class: 'wrap-wide' });
 
     const hero = h('section', { class: 'home-hero' }, [
       h('div', {}, [
-        h('div', { class: 'eyebrow', text: PB.chapters.length + ' chapters · ' + all.length + ' scored problems · ' + PB.chapters.reduce(function (a, c) { return a + (c.labs || []).length; }, 0) + ' labs' }),
+        h('div', { class: 'eyebrow', text: PB.SUBJECTS.length + ' sciences · ' + PB.chapters.length + ' chapters · ' + all.length + ' scored problems · ' + PB.chapters.reduce(function (a, c) { return a + (c.labs || []).length; }, 0) + ' labs · 3 games' }),
         h('h1', { text: 'Learn the idea. Run the lab. Earn the points.', style: 'margin-top:10px' }),
-        h('p', { class: 'lede', html: 'A physics course that runs from units and vectors to quantum and nuclear physics, in the order of the standard university texts. Every chapter ends in a scored problem set that climbs from concept checks to olympiad-level problems.' }),
+        h('p', { class: 'lede', html: 'Physics, chemistry, biology and astronomy in one place, each taught chapter by chapter with interactive labs and scored problems that climb to olympiad level. Each science comes with a game where your knowledge pays off, and everything feeds one level, one streak and one set of badges.' }),
         h('div', { class: 'hero-cta' }, [
-          h('a', { class: 'btn primary', href: '#ch-' + cont.id, text: (S().lastChapter ? 'Continue: ' : 'Start: ') + cont.num + '. ' + cont.title }),
+          h('a', { class: 'btn primary', href: '#ch-' + cont.id, text: (S().lastChapter ? 'Continue: ' : 'Start: ') + PB.subject(cont.subject).name + ' ' + cont.num + '. ' + cont.title }),
           h('a', { class: 'btn', href: '#gym', text: 'Practice gym' }),
           h('a', { class: 'btn', href: '#arena', text: 'Problem arena' }),
-          h('a', { class: 'btn', href: '#solver', text: 'Equation board' }),
           h('a', { class: 'btn ghost', href: '#formulas', text: 'Formula sheet' })
         ])
       ]),
@@ -421,13 +455,28 @@
     ]);
     wrap.appendChild(hero);
 
+    wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Sciences' }), h('p', { text: 'Rings show reading plus problems completed.' })]));
+    const sg = h('div', { class: 'subj-grid' });
+    PB.SUBJECTS.forEach(function (sub) {
+      const st = subjectStats(sub.id);
+      sg.appendChild(h('div', { class: 'subj-card subj-' + sub.id }, [
+        h('a', { class: 'subj-main', href: '#' + sub.id }, [
+          h('span', { class: 'subj-badge', text: sub.mark }),
+          h('div', {}, [h('h3', { text: sub.name }), h('p', { text: st.chapters + ' chapters · ' + st.labs + ' labs · ' + st.solved + '/' + st.problems + ' solved' })]),
+          ring(st.progress, 42)
+        ]),
+        sub.game ? h('a', { class: 'subj-game', href: '#game-' + sub.id, html: '▶ Play <strong>' + sub.game.name + '</strong>' }) : h('a', { class: 'subj-game', href: '#solver', html: '∑ Open the <strong>Equation board</strong>' })
+      ]));
+    });
+    wrap.appendChild(sg);
+
     const dp = PB.dailyProblem();
     if (dp) {
       const dch = PB.chapter(dp.chapter);
       const done = S().solved[dp.id];
       wrap.appendChild(h('section', { class: 'daily' }, [
         h('div', { class: 'daily-badge', html: '<b>×2</b>points' }),
-        h('div', {}, [h('div', { class: 'eyebrow', text: "Today's challenge" }), h('h3', { text: dch.num + '.' + dp.num + '  ' + (dp.title || 'Problem') }), h('p', { text: done ? 'Solved today. A new challenge appears tomorrow.' : dch.title + ' · ' + LEVEL_NAME[dp.level] + ' · ' + dp.points * 2 + ' points while it lasts.' })]),
+        h('div', {}, [h('div', { class: 'eyebrow', text: "Today's challenge · " + PB.subject(dch.subject).name }), h('h3', { text: dch.num + '.' + dp.num + '  ' + (dp.title || 'Problem') }), h('p', { text: done ? 'Solved today. A new challenge appears tomorrow.' : dch.title + ' · ' + LEVEL_NAME[dp.level] + ' · ' + dp.points * 2 + ' points while it lasts.' })]),
         h('a', { class: 'btn ' + (done ? '' : 'primary'), href: '#ch-' + dch.id + '--problems', 'data-focus': dp.id, text: done ? 'Review' : 'Take it on', onclick: function () { pendingFocus = dp.id; } })
       ]));
     }
@@ -437,41 +486,50 @@
     const tbl = h('div', { class: 'table-wrap' });
     tbl.innerHTML = '<table class="prose" style="font-size:14px;margin:0;width:100%"><thead><tr><th>Tier</th><th>Base points</th><th>What it tests</th></tr></thead><tbody>' +
       '<tr><td><span class="chip concept">Concept</span></td><td><span class="pts">10</span></td><td>Do you understand the idea? Quick multiple choice.</td></tr>' +
-      '<tr><td><span class="chip core">Core</span></td><td><span class="pts">20</span></td><td>Textbook-standard numerical problems.</td></tr>' +
+      '<tr><td><span class="chip core">Core</span></td><td><span class="pts">20</span></td><td>Textbook-standard problems.</td></tr>' +
       '<tr><td><span class="chip olympiad">Olympiad</span></td><td><span class="pts">40</span></td><td>Multi-step problems in the style of national and international olympiads.</td></tr>' +
-      '</tbody></table><p style="color:var(--ink-2);font-size:13.5px;margin:10px 0 0">Each hint costs 25% of the base points. A wrong numerical answer costs 15%, a wrong multiple-choice answer 34%. A problem never drops below 20% while you keep trying. Viewing the solution forfeits the problem. The daily challenge pays double, every badge adds 25 XP, and each section read or lab explored adds 5 XP. Three daily quests pay bonus XP, and the practice gym pays for streaks of correct drills (combo multiplier up to ×3).</p>';
+      '</tbody></table><p style="color:var(--ink-2);font-size:13.5px;margin:10px 0 0">Each hint costs 25% of the base points. A wrong numerical answer costs 15%, a wrong multiple-choice answer 34%. A problem never drops below 20% while you keep trying. Viewing the solution forfeits the problem. The daily challenge pays double, every badge adds 25 XP, and each section read or lab explored adds 5 XP. Three daily quests pay bonus XP, the practice gym pays for streaks of correct drills (combo multiplier up to ×3), and correct answers in the games’ quiz schools earn 2 XP each.</p>';
     wrap.appendChild(tbl);
+    setView([wrap], 'home');
+  }
 
-    wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Chapters' }), h('p', { text: 'Rings show reading plus problems completed. Stars mark finished concept, core and olympiad sets.' })]));
-    PARTS.forEach(function (part) {
-      const chs = PB.chapters.filter(function (c) { return c.part === part; });
+  function viewSubject(sid) {
+    const sub = PB.subject(sid);
+    S().subject = sid; PB.save();
+    if (PB.syncGames) PB.syncGames();
+    const st = subjectStats(sid);
+    const wrap = h('div', { class: 'wrap-wide' });
+    wrap.appendChild(h('header', { class: 'subj-head subj-' + sid }, [
+      h('span', { class: 'subj-badge lg', text: sub.mark }),
+      h('div', {}, [
+        h('div', { class: 'eyebrow', text: st.chapters + ' chapters · ' + st.labs + ' labs · ' + st.problems + ' scored problems' }),
+        h('h1', { text: sub.name }),
+        h('p', { class: 'lede', text: sub.blurb })
+      ]),
+      ring(st.progress, 64)
+    ]));
+    if (sub.game && PB.gameCard) wrap.appendChild(PB.gameCard(sub));
+    if (!st.chapters) wrap.appendChild(h('p', { class: 'empty', text: 'Chapters for this subject are on their way.' }));
+    sub.parts.forEach(function (part) {
+      const chs = PB.chaptersOf(sid).filter(function (c) { return c.part === part; });
       if (!chs.length) return;
       wrap.appendChild(h('div', { class: 'part-label', text: part }));
-      const grid = h('div', { class: 'ch-grid' });
-      chs.forEach(function (c) {
-        const st = PB.chapterStats(c);
-        grid.appendChild(h('a', { class: 'ch-card', href: '#ch-' + c.id }, [
-          h('div', { class: 'num', text: 'Chapter ' + c.num }),
-          ring(st.progress, 42),
-          h('h3', { text: c.title }),
-          h('div', { class: 'meta' }, [stars(st.stars), h('span', { text: st.solved + '/' + st.total + ' solved' }), h('span', { text: st.earned + ' pts' })])
-        ]));
-      });
-      wrap.appendChild(grid);
+      wrap.appendChild(chapterGrid(chs));
     });
-    setView([wrap], 'home');
+    setView([wrap], sid);
+    window.scrollTo(0, 0);
   }
 
   let pendingFocus = null;
   function viewChapter(id, tab) {
     const ch = PB.chapter(id);
     if (!ch) return viewHome();
-    S().lastChapter = ch.id; PB.save();
+    S().lastChapter = ch.id; S().subject = ch.subject; PB.save();
     tab = tab || 'learn';
     const wrap = h('div', { class: 'wrap' });
     const st = PB.chapterStats(ch);
     const head = h('header', { class: 'ch-head' }, [
-      h('div', { class: 'eyebrow', text: 'Chapter ' + ch.num + ' · ' + ch.part }),
+      h('div', { class: 'eyebrow', html: '<a href="#' + ch.subject + '">' + PB.subject(ch.subject).name + '</a> · Chapter ' + ch.num + ' · ' + ch.part }),
       h('h1', { text: ch.title }),
       h('p', { class: 'lede', html: ch.subtitle }),
       h('div', { class: 'ch-progress' }, [
@@ -535,8 +593,8 @@
       content.appendChild(formulaBlock(ch, false));
     }
 
-    const i = PB.chapters.indexOf(ch);
-    const prev = PB.chapters[i - 1], next = PB.chapters[i + 1];
+    const sibs = PB.chaptersOf(ch.subject), i = sibs.indexOf(ch);
+    const prev = sibs[i - 1], next = sibs[i + 1];
     wrap.appendChild(h('nav', { class: 'ch-nav', 'aria-label': 'Previous and next chapter' }, [
       prev ? h('a', { href: '#ch-' + prev.id }, [h('small', { text: '← Chapter ' + prev.num }), prev.title]) : null,
       next ? h('a', { class: 'next', href: '#ch-' + next.id }, [h('small', { text: 'Chapter ' + next.num + ' →' }), next.title]) : null
@@ -563,7 +621,8 @@
   function viewFormulas() {
     const wrap = h('div', { class: 'wrap-wide' }, [
       h('div', { class: 'eyebrow', text: 'Reference' }), h('h1', { text: 'Formula sheet', style: 'font-size:34px;margin-top:6px' }),
-      h('p', { class: 'lede', text: 'Every key result in the book, one block per chapter. Knowing where a formula comes from matters more than memorising it: each one is derived in its chapter.' })
+      h('p', { class: 'lede', text: 'Every key result in the book, one block per chapter. Knowing where a formula comes from matters more than memorising it: each one is derived in its chapter.' }),
+      h('div', { class: 'hero-cta' }, PB.SUBJECTS.map(function (sub) { return h('a', { class: 'btn small', href: '#formulas', text: sub.name, onclick: function (e) { e.preventDefault(); const t = document.getElementById('f-' + sub.id); if (t) t.scrollIntoView({ behavior: 'smooth' }); } }); }))
     ]);
     const consts = h('section', { class: 'formula-block', style: 'margin-top:22px' }, [h('h3', { text: 'Constants used in this book' })]);
     const cl = h('div', { class: 'formula-list' });
@@ -576,13 +635,18 @@
     ].forEach(function (f) { cl.appendChild(h('div', { class: 'formula' }, [h('span', { text: f[0] }), h('div', { class: 'm', html: '$' + f[1] + '$' })])); });
     consts.appendChild(cl);
     wrap.appendChild(consts);
-    PB.chapters.forEach(function (c) { wrap.appendChild(formulaBlock(c, true)); });
+    PB.SUBJECTS.forEach(function (sub) {
+      const chs = PB.chaptersOf(sub.id);
+      if (!chs.length) return;
+      wrap.appendChild(h('h2', { class: 'formula-subject', id: 'f-' + sub.id, text: sub.name }));
+      chs.forEach(function (c) { wrap.appendChild(formulaBlock(c, true)); });
+    });
     setView([wrap], 'formulas');
     typeset(wrap);
     window.scrollTo(0, 0);
   }
 
-  const arenaState = { level: 'all', status: 'all', chapter: 'all', shown: 12 };
+  const arenaState = { subject: 'all', level: 'all', status: 'all', chapter: 'all', shown: 12 };
   function viewArena() {
     const wrap = h('div', { class: 'wrap' }, [
       h('div', { class: 'eyebrow', text: 'Every problem in one place' }), h('h1', { text: 'Problem arena', style: 'font-size:34px;margin-top:6px' }),
@@ -594,15 +658,18 @@
       opts.forEach(function (o) { s.appendChild(h('button', { type: 'button', class: arenaState[key] === o[0] ? 'on' : '', 'aria-pressed': arenaState[key] === o[0] ? 'true' : 'false', text: o[1], onclick: function () { arenaState[key] = o[0]; arenaState.shown = 12; viewArena(); } })); });
       return s;
     }
+    filters.appendChild(seg('subject', [['all', 'All sciences']].concat(PB.SUBJECTS.map(function (x) { return [x.id, x.name]; }))));
     filters.appendChild(seg('level', [['all', 'All tiers'], ['concept', 'Concept'], ['core', 'Core'], ['olympiad', 'Olympiad']]));
     filters.appendChild(seg('status', [['all', 'Any status'], ['open', 'Unsolved'], ['solved', 'Solved']]));
     const sel = h('select', { class: 'filter-select', id: 'arena-chapter', 'aria-label': 'Chapter', onchange: function () { arenaState.chapter = sel.value; arenaState.shown = 12; viewArena(); } });
     sel.appendChild(h('option', { value: 'all', text: 'All chapters' }));
-    PB.chapters.forEach(function (c) { sel.appendChild(h('option', { value: c.id, text: c.num + '. ' + c.title })); });
+    PB.chapters.forEach(function (c) { if (arenaState.subject === 'all' || c.subject === arenaState.subject) sel.appendChild(h('option', { value: c.id, text: PB.subject(c.subject).name + ' ' + c.num + '. ' + c.title })); });
+    if (arenaState.chapter !== 'all' && arenaState.subject !== 'all' && PB.chapter(arenaState.chapter).subject !== arenaState.subject) arenaState.chapter = 'all';
     sel.value = arenaState.chapter;
     filters.appendChild(sel);
     wrap.appendChild(filters);
     const ps = PB.allProblems().filter(function (p) {
+      if (arenaState.subject !== 'all' && PB.chapter(p.chapter).subject !== arenaState.subject) return false;
       if (arenaState.level !== 'all' && p.level !== arenaState.level) return false;
       if (arenaState.chapter !== 'all' && p.chapter !== arenaState.chapter) return false;
       const st = PB.status(p);
@@ -690,6 +757,7 @@
     if (hs === 'arena') return viewArena();
     if (hs === 'formulas') return viewFormulas();
     if (hs === 'profile') return viewProfile();
+    if (PB.subject(hs)) return viewSubject(hs);
     if (PB.views && PB.views[hs]) return PB.views[hs]();
     if (hs.indexOf('ch-') === 0) {
       const rest = hs.slice(3).split('--');
