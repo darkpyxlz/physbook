@@ -35,6 +35,20 @@ An interactive physics textbook for students working toward physics olympiads (a
 
 231 scored problems in total: 64 concept, 105 core and 62 olympiad.
 
+## Equation board
+
+A symbolic solver for working through multi-equation problems visually (sidebar → **Equation board**, or `#solver`).
+
+- **Add equations** in plain text: `v = u + a*t`, `F = G*M*m/r^2`, `T = 2*pi*sqrt(L/g)`, `N = N_0*e^(-lambda*t)`. Use `*` for products (or a space: `m g h`), `^` for powers, `_` for subscripts (`v_0`, `theta_1`) and Greek names (`theta`, `omega`, `lambda`, `mu`). `DeltaT` shows as $\Delta T$. The **Equation library** has ready-made equations by topic, and **Load an example** sets up a few worked boards.
+- Each card shows its variables as coloured chips. The same name always has the same colour; hovering a chip draws dotted lines to its matches on other cards.
+- **Drag from a chip onto a chip on another card** to say they are the same quantity. The link's menu lets you substitute either way: "use (1) to replace $a$ in (2)" solves (1) for $a$ and puts it into (2), making a new card with the working shown. Linking different names (the $v$ at the end of one stage is the $u$ at the start of the next) works the same way. Taps work too: press a chip, then "Link to a different variable…".
+- **Press a chip** to rearrange that card for the variable.
+- **Known values**: type numbers (SI units) in the side panel. Each card then shows what it can work out, with a **Use** button to feed the answer back in. Angles can be in radians or degrees.
+- All quantities are treated as positive, so $\sqrt{v^2}$ is $v$ and negative roots are dropped.
+- Undo (or Ctrl+Z) reverses any change. The board is saved in `localStorage`.
+
+The algebra is [SymPy](https://www.sympy.org) running in the browser through [Pyodide](https://pyodide.org) (v0.26.4 from jsDelivr). It downloads on first use (about 15 MB, then cached), so the board needs an internet connection the first time.
+
 ## Scoring and gamification
 
 - Concept problems are worth 10 points, core 20 and olympiad 40.
@@ -66,6 +80,8 @@ js/sims.js            lab engine helpers and labs for chapters 1–10
 js/sims2.js           labs for chapters 11–21
 js/chapters/NN-*.js   one file per chapter: sections, labs, formulas, problems
 js/app.js             routing, views, problem cards, HUD
+js/solver.js          equation board UI (cards, wires, menus, known values)
+js/solver-engine.js   the board's SymPy code (Python, as a string run by Pyodide)
 ```
 
 ## Adding content
