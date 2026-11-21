@@ -93,7 +93,7 @@
     const nav = $('#sidebar');
     nav.innerHTML = '';
     nav.appendChild(h('div', { class: 'rail-group', text: 'Book' }));
-    [['home', 'Dashboard'], ['arena', 'Problem arena'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
+    [['home', 'Dashboard'], ['arena', 'Problem arena'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
       nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
     });
     PARTS.forEach(function (part) {
@@ -402,6 +402,7 @@
         h('div', { class: 'hero-cta' }, [
           h('a', { class: 'btn primary', href: '#ch-' + cont.id, text: (S().lastChapter ? 'Continue: ' : 'Start: ') + cont.num + '. ' + cont.title }),
           h('a', { class: 'btn', href: '#arena', text: 'Problem arena' }),
+          h('a', { class: 'btn', href: '#solver', text: 'Equation board' }),
           h('a', { class: 'btn ghost', href: '#formulas', text: 'Formula sheet' })
         ])
       ]),
@@ -685,6 +686,7 @@
     if (hs === 'arena') return viewArena();
     if (hs === 'formulas') return viewFormulas();
     if (hs === 'profile') return viewProfile();
+    if (PB.views && PB.views[hs]) return PB.views[hs]();
     if (hs.indexOf('ch-') === 0) {
       const rest = hs.slice(3).split('--');
       return viewChapter(rest[0], rest[1]);
@@ -702,4 +704,10 @@
   renderHUD();
   route();
   PB.problemCard = problemCard;
+  /* Hooks for extra views (such as the equation board in solver.js) */
+  PB.h = h;
+  PB.typeset = typeset;
+  PB.setView = setView;
+  PB.onViewDestroy = function (fn) { activeLabs.push(fn); };
+  PB.toast = toast;
 })();
