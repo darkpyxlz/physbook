@@ -14,7 +14,7 @@
       parts: ['Foundations', 'Physical Chemistry', 'Inorganic Chemistry', 'Organic Chemistry', 'Analysis'],
       game: { id: 'chemcorp', name: 'ChemCorp', path: 'games/chemcorp/index.html', blurb: 'An organic chemistry idle game: run real reactions, research 145 of them and automate a chemical plant.' } },
     { id: 'biology', name: 'Biology', mark: 'Bi', blurb: 'Cells, biochemistry, genetics, physiology, evolution and ecology, with the quantitative tools of olympiad biology.',
-      parts: ['Cells and Molecules', 'Genetics', 'Physiology', 'Evolution and Ecology'],
+      parts: ['Cells and Molecules', 'Genetics', 'Physiology', 'Diversity of Life', 'Evolution and Ecology'],
       game: { id: 'cytos', name: 'Cytos', path: 'games/cytos/index.html', blurb: 'You are a cell: express genes, build organelles, respire, signal, repair DNA and fight viruses.' } },
     { id: 'astronomy', name: 'Astronomy', mark: 'As', blurb: 'The sky, the Solar System, stars, galaxies and the universe, with the observational skills of astronomy olympiads.',
       parts: ['The Sky', 'The Solar System', 'The Stars', 'Galaxies and Cosmology'],
