@@ -11,11 +11,32 @@ Every chapter has four parts:
 
 | Subject | Chapters | Labs | Scored problems | Drill templates | Game |
 |---------|---------:|-----:|----------------:|----------------:|------|
-| Physics | 24 | 36 | 348 | 72 | — |
-| Chemistry | 20 | 21 | 220 | 60 | ChemCorp |
-| Biology | 20 | 20 | 220 | 60 | Cytos |
-| Astronomy | 16 | 18 | 176 | 48 | Firmament |
-| **Total** | **80** | **95** | **964** | **240** | |
+| Physics | 24 | 48 | 444 | 72 | — |
+| Chemistry | 26 | 52 | 372 | 78 | ChemCorp |
+| Biology | 28 | 56 | 396 | 84 | Cytos |
+| Astronomy | 16 | 32 | 240 | 48 | Firmament |
+| **Total** | **94** | **188** | **1452** | **282** | |
+
+Every chapter has at least two labs. Many second labs use a shared explorer engine (`js/sims-explore.js`), so a chapter can describe a small model (controls, curves, a picture and a readout) as a config instead of new drawing code.
+
+## Skill tree
+
+Chapters unlock Duolingo-style. Each chapter lists its prerequisites in `js/prereqs.js`, within its own science and across sciences: chemistry needs physics foundations (for example, Atomic Structure needs Electrostatics), biology needs chemistry (Enzymes needs Reaction Kinetics), and astronomy needs physics (Kepler's Laws needs Gravitation). A chapter is **passed** when all its concept checks and at least two core problems are solved.
+
+- Locked chapters show what they need, with links straight to the missing problems.
+- **Test out**: answer 5 randomised drills from the missing prerequisites; 4 right opens the chapter for good.
+- The **Skill tree** page (`#tree`) shows every chapter and its dependencies.
+- The tree can be switched off on the Level & badges page for free roaming. The problem arena, daily challenge and gym only draw from open chapters.
+
+## Hero and bosses
+
+An RPG layer on top of the XP system (`js/rpg.js`, page `#hero`):
+
+- **Classes**: Physicist (+20% damage), Chemist (coffee heals double), Biologist (+40 HP) or Astronomer (+15% critical hits). Your class's science pays 25% more gold.
+- **Attributes**: Might, Alchemy, Vitality and Insight grow with the points earned in physics, chemistry, biology and astronomy.
+- **Gold**: earned from solved problems, gym drills, quests, sections and labs. Spend it in the **shop** on 12 pieces of gear across four slots (head, body, tool, charm) and on coffee, which heals in battle.
+- **Unit bosses**: every part of every science has a boss (21 in all, from the Dimensional Golem to the Dark Energy Titan). A boss appears once you pass three chapters of its unit. In a fight, each correct answer to a randomised drill from that unit strikes the boss; each wrong answer lets it strike back. First victories pay gold, XP and a title.
+- Five new badges cover bosses, gold and gear.
 
 ## Physics
 
@@ -58,10 +79,16 @@ Parts: Foundations, Physical Chemistry, Inorganic Chemistry, Organic Chemistry, 
 | 15–16 | Main-group chemistry; transition metals | Ellingham diagram, crystal-field splitting |
 | 17–19 | Organic structure; reaction mechanisms; carbonyls and synthesis | Homologous series, SN1/SN2, synthesis planner |
 | 20 | Spectroscopy | ¹H NMR simulator |
+| 21 | Crystal Structures and the Solid State | Unit cells, powder diffraction |
+| 22 | Hydrogen and the s-Block | Decomposing group 2 carbonates, flame colours |
+| 23 | The p-Block: Groups 13 to 15 | The Haber compromise, building silicates |
+| 24 | Oxygen, Sulfur, the Halogens and the Noble Gases | The contact process, halogen trends |
+| 25 | Coordination Chemistry in Depth | Stepwise complex formation, the chelate effect |
+| 26 | Redox Diagrams and Inorganic Analysis | Frost diagrams, Pourbaix diagram of iron |
 
 ## Biology
 
-Parts: Cells and Molecules, Genetics, Physiology, Evolution and Ecology.
+Parts: Cells and Molecules, Genetics, Physiology, Diversity of Life, Evolution and Ecology (following Campbell Biology and the IBO syllabus).
 
 | # | Chapter | Lab |
 |---|---------|-----|
@@ -85,6 +112,14 @@ Parts: Cells and Molecules, Genetics, Physiology, Evolution and Ecology.
 | 18 | Evolution, Speciation and Phylogeny | Molecular clock with Jukes–Cantor correction |
 | 19 | Population Ecology | Mark and recapture |
 | 20 | Communities and Ecosystems | Lotka–Volterra predator–prey cycles |
+| 21 | Cell Communication | Receptor occupancy, amplification in a cascade |
+| 22 | Viruses, Prokaryotes and Protists | Bacterial growth curve, antibiotic selection |
+| 23 | Plant and Fungal Diversity | Alternation of generations, a fungal colony |
+| 24 | Animal Diversity | Kleiber's law, bone scaling |
+| 25 | Animal Nutrition and Digestion | Energy balance, building an absorbing surface |
+| 26 | Reproduction and Development | Hormones of the menstrual cycle, cleavage |
+| 27 | Plant Growth, Reproduction and Responses | Auxin dose responses, measuring the night |
+| 28 | Animal Behaviour | Hawks and doves, when to leave a patch |
 
 ## Astronomy
 
@@ -186,6 +221,10 @@ js/chemistry/NN-*.js  chemistry chapters (with their drills)
 js/biology/NN-*.js    biology chapters (with their drills)
 js/astronomy/NN-*.js  astronomy chapters (with their drills)
 js/games.js           game tabs and progress read from the games' saves
+js/sims-explore.js    the general explorer lab engine and PB.addLabs
+js/prereqs.js         the skill tree: prerequisites, locks, test-outs, #tree
+js/rpg.js             hero, gold, shop, unit bosses, #hero
+js/extra/*.js         second labs and extra problems for the original chapters (loaded last so problem ids stay stable)
 games/                copies of ChemCorp, Cytos and Firmament
 js/app.js             routing, views, problem cards, HUD
 js/solver.js          equation board UI (cards, wires, menus, known values)
