@@ -95,14 +95,18 @@
     const th = h('button', { class: 'icon-btn hud-theme', 'aria-label': 'Switch light or dark theme', html: isDark() ? SUN : MOON, onclick: function () {
       S().theme = isDark() ? 'light' : 'dark'; PB.save(); applyTheme(); renderHUD(); PB.emit({ type: 'theme' });
     } });
-    box.append(lvl, st, th);
+    const gold = PB.rpg ? h('a', { class: 'hud-gold', href: '#hero', title: 'Gold: spend it in the hero shop', html: '<span class="coin">◉</span>' + PB.rpg.gold() }) : null;
+    box.append(lvl, st);
+    if (gold) box.append(gold);
+    box.append(th);
   }
+  PB.renderHUD = function () { renderHUD(); };
 
   function renderSidebar(activeId) {
     const nav = $('#sidebar');
     nav.innerHTML = '';
     nav.appendChild(h('div', { class: 'rail-group', text: 'Book' }));
-    [['home', 'Dashboard'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
+    [['home', 'Dashboard'], ['hero', 'Hero & bosses'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
       nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
     });
     const sub = PB.subject(curSubject());
@@ -114,11 +118,11 @@
       if (!chs.length) return;
       nav.appendChild(h('div', { class: 'rail-group', text: part }));
       chs.forEach(function (c) {
-        const st = PB.chapterStats(c);
-        nav.appendChild(h('a', { class: 'rail-link' + (activeId === c.id ? ' active' : ''), href: '#ch-' + c.id }, [
+        const st = PB.chapterStats(c), open = !PB.isUnlocked || PB.isUnlocked(c);
+        nav.appendChild(h('a', { class: 'rail-link' + (activeId === c.id ? ' active' : '') + (open ? '' : ' locked'), href: '#ch-' + c.id }, [
           h('span', { class: 'rail-num', text: String(c.num).padStart(2, '0') }),
           h('span', { class: 'rail-name', text: c.title }),
-          h('span', { class: 'rail-prog' }, [ring(st.progress, 26)])
+          h('span', { class: 'rail-prog' }, [open ? ring(st.progress, 26) : h('span', { class: 'rail-lock', text: '🔒' })])
         ]));
       });
     });
@@ -143,7 +147,9 @@
     if (ev.type === 'levelup') toast('<span class="tx">LV ' + ev.level + '</span> You are now a ' + ev.title, 'badge-t');
     if (ev.type === 'quest') toast('<span class="tx">Quest</span> ' + ev.quest.text + ' <span class="tx">+' + ev.quest.xp + ' XP</span>', 'badge-t');
     if (ev.type === 'badge') toast('<span class="tx">Badge</span> ' + ev.badge.name + ' <span class="tx">+25 XP</span>', 'badge-t');
-    if (ev.type === 'xp' || ev.type === 'badge' || ev.type === 'levelup') { renderHUD(); renderSidebar(currentActive); }
+    if (ev.type === 'unlock') toast('<span class="tx">Unlocked</span> ' + PB.subject(ev.chapter.subject).name + ' · ' + ev.chapter.title, 'badge-t');
+    if (ev.type === 'loot') toast('<span class="tx">' + ev.icon + '</span> ' + ev.text, 'badge-t');
+    if (ev.type === 'xp' || ev.type === 'badge' || ev.type === 'levelup' || ev.type === 'gold') { renderHUD(); renderSidebar(currentActive); }
   });
 
   /* ---------- Problem card ---------- */
@@ -404,12 +410,14 @@
   function chapterGrid(chs) {
     const grid = h('div', { class: 'ch-grid' });
     chs.forEach(function (c) {
-      const st = PB.chapterStats(c);
-      grid.appendChild(h('a', { class: 'ch-card', href: '#ch-' + c.id }, [
-        h('div', { class: 'num', text: 'Chapter ' + c.num }),
-        ring(st.progress, 42),
+      const st = PB.chapterStats(c), open = !PB.isUnlocked || PB.isUnlocked(c), passed = PB.isPassed && PB.isPassed(c);
+      const miss = open ? [] : PB.missingPrereqs(c);
+      grid.appendChild(h('a', { class: 'ch-card' + (open ? '' : ' locked') + (passed ? ' passed' : ''), href: '#ch-' + c.id }, [
+        h('div', { class: 'num', text: 'Chapter ' + c.num + (passed ? ' · passed ✓' : '') }),
+        open ? ring(st.progress, 42) : h('span', { class: 'lock-ring', text: '🔒' }),
         h('h3', { text: c.title }),
-        h('div', { class: 'meta' }, [stars(st.stars), h('span', { text: st.solved + '/' + st.total + ' solved' }), h('span', { text: st.earned + ' pts' })])
+        open ? h('div', { class: 'meta' }, [stars(st.stars), h('span', { text: st.solved + '/' + st.total + ' solved' }), h('span', { text: st.earned + ' pts' })])
+          : h('div', { class: 'meta' }, [h('span', { text: 'Needs: ' + miss.map(function (m) { return (m.subject !== c.subject ? PB.subject(m.subject).name + ' · ' : '') + m.title; }).join(', ') })])
       ]));
     });
     return grid;
@@ -524,7 +532,9 @@
   function viewChapter(id, tab) {
     const ch = PB.chapter(id);
     if (!ch) return viewHome();
-    S().lastChapter = ch.id; S().subject = ch.subject; PB.save();
+    S().subject = ch.subject;
+    if (PB.isUnlocked && !PB.isUnlocked(ch)) { const lv = PB.lockView(ch); setView([lv], ch.id); typeset(lv); window.scrollTo(0, 0); return; }
+    S().lastChapter = ch.id; PB.save();
     tab = tab || 'learn';
     const wrap = h('div', { class: 'wrap' });
     const st = PB.chapterStats(ch);
@@ -672,6 +682,7 @@
       if (arenaState.subject !== 'all' && PB.chapter(p.chapter).subject !== arenaState.subject) return false;
       if (arenaState.level !== 'all' && p.level !== arenaState.level) return false;
       if (arenaState.chapter !== 'all' && p.chapter !== arenaState.chapter) return false;
+      if (PB.isUnlocked && !PB.isUnlocked(PB.chapter(p.chapter))) return false;
       const st = PB.status(p);
       if (arenaState.status === 'open' && (st === 'solved' || st === 'revealed')) return false;
       if (arenaState.status === 'solved' && st !== 'solved') return false;
@@ -751,6 +762,7 @@
   }
 
   /* ---------- Router ---------- */
+  PB.route = function () { route(); };
   function route() {
     const hs = decodeURIComponent((location.hash || '').replace(/^#/, ''));
     if (!hs || hs === 'home') return viewHome();

@@ -4,10 +4,13 @@
   const PB = window.PB, h = PB.h, S = function () { return PB.S; };
   const SPRINT_SECONDS = 90;
 
+  const open = function (k) { return !PB.isUnlocked || PB.isUnlocked(PB.chapter(k)); };
   function drillPool(topic) {
-    if (topic === 'all') return Object.keys(PB.drills).reduce(function (a, k) { return a.concat(PB.drills[k]); }, []);
-    if (topic.indexOf('subj:') === 0) { const sid = topic.slice(5); return PB.chaptersOf(sid).reduce(function (a, c) { return a.concat(PB.drills[c.id] || []); }, []); }
-    return PB.drills[topic] || [];
+    let pool;
+    if (topic === 'all') pool = Object.keys(PB.drills).filter(open).reduce(function (a, k) { return a.concat(PB.drills[k]); }, []);
+    else if (topic.indexOf('subj:') === 0) { const sid = topic.slice(5); pool = PB.chaptersOf(sid).filter(function (c) { return open(c.id); }).reduce(function (a, c) { return a.concat(PB.drills[c.id] || []); }, []); }
+    else pool = open(topic) ? PB.drills[topic] || [] : [];
+    return pool.length ? pool : PB.drills[PB.chapters[0].id];
   }
   function makeDrill(topic) {
     const pool = drillPool(topic);
@@ -46,7 +49,7 @@
     const sel = h('select', { class: 'filter-select', id: 'gym-topic', 'aria-label': 'Topic', onchange: function () { st.topic = sel.value; st.combo = 0; next(); } });
     sel.appendChild(h('option', { value: 'all', text: 'Mixed: every science' }));
     PB.SUBJECTS.forEach(function (sub) {
-      const chs = PB.chaptersOf(sub.id).filter(function (c) { return PB.drills[c.id]; });
+      const chs = PB.chaptersOf(sub.id).filter(function (c) { return PB.drills[c.id] && open(c.id); });
       if (!chs.length) return;
       sel.appendChild(h('option', { value: 'subj:' + sub.id, text: 'Mixed: all of ' + sub.name }));
       const og = h('optgroup', { label: sub.name });

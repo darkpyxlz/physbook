@@ -139,7 +139,7 @@
   /* ---------- Daily challenge ---------- */
   function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   PB.dailyProblem = function () {
-    const all = PB.allProblems().filter(function (p) { return p.level !== 'concept'; });
+    const all = PB.allProblems().filter(function (p) { return p.level !== 'concept' && (!PB.isUnlocked || PB.isUnlocked(PB.chapter(p.chapter))); });
     if (!all.length) return null;
     const t = dayKey();
     if (PB.S.daily && PB.S.daily.date === t) { const p = PB.problem(PB.S.daily.pid); if (p) return p; }
@@ -168,6 +168,7 @@
     return 'open';
   };
 
+  PB.addXP = function (n, reason) { addXP(n, reason, true); PB.save(); };
   function addXP(n, reason, noCount) {
     const before = PB.levelInfo().level;
     PB.S.xp += n;
