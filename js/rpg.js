@@ -502,6 +502,8 @@
     }
     function strike(ok) {
       F.turn++;
+      const fhp0 = F.fhp, hp0 = F.hp;
+      F.flash = null;
       if (ok) {
         F.streak++; F.correct++;
         let dmg = st.atk * (1 + attr / 20) * (1 + (P.combo || 0) * (F.streak - 1)) * (1 + 0.2 * lv('beam') * ev('beam'));
@@ -529,6 +531,7 @@
         if (F.hp <= 0 && P.revive && !F.revived) { F.revived = true; F.hp = Math.round(st.hp * P.revive); F.log.unshift('🥾 You get back up with ' + F.hp + ' HP!'); }
       }
       if (F.fhp > 0 && F.hp > 0) endTurn();
+      F.flash = { dealt: Math.max(0, Math.round(fhp0 - F.fhp)), taken: Math.max(0, Math.round(hp0 - F.hp)), crit: /Critical/.test(F.log[0] || '') || /Critical/.test(F.log[1] || '') };
       if (F.fhp <= 0) { const txt = cfg.onWin(F); if (cfg.next) { const nf = cfg.next(F); if (nf) { F.foe = nf; F.fhp = nf.hp; F.first = true; F.blocks = Math.max(F.blocks, P.block || 0); F.acid = 0; F.log.unshift('🏆 ' + txt + ' Next: ' + nf.name + '.'); newQ(); draw(); return; } } F.over = 'win'; F.reward = txt; }
       else if (F.hp <= 0) { F.over = 'lose'; F.reward = cfg.onLose ? cfg.onLose(F) : ''; }
       else newQ();
@@ -541,10 +544,12 @@
     }
     function draw() {
       arena.innerHTML = '';
+      const fl = F.flash; F.flash = null;
+      const pop = (n, cls) => (n > 0 ? h('span', { class: 'dmg-float ' + cls, text: '−' + n }) : null);
       arena.appendChild(h('div', { class: 'battle-top' }, [
-        h('div', { class: 'fighter' }, [h('span', { class: 'fighter-ico', html: st.cls.icon + (PET ? '<span class="fighter-pet">' + PET.pet.icon + '</span>' : '') }), h('b', { text: (r.name || st.cls.name) + ' · ⚔' + st.atk + (F.blocks ? ' · 🛡️' + F.blocks : '') }), hpBar(F.hp, st.hp, 'me')]),
+        h('div', { class: 'fighter' + (fl && fl.taken ? ' hit' : '') }, [fl ? pop(fl.taken, 'me') : null, h('span', { class: 'fighter-ico', html: st.cls.icon + (PET ? '<span class="fighter-pet">' + PET.pet.icon + '</span>' : '') }), h('b', { text: (r.name || st.cls.name) + ' · ⚔' + st.atk + (F.blocks ? ' · 🛡️' + F.blocks : '') }), hpBar(F.hp, st.hp, 'me')]),
         h('span', { class: 'vs', text: F.floor ? 'F' + F.floor : 'VS' }),
-        h('div', { class: 'fighter boss' }, [h('span', { class: 'fighter-ico', text: F.foe.icon }), h('b', { text: F.foe.name + ' · ⚔' + F.foe.atk + (F.acid ? ' · 🧪' + F.acid : '') }), hpBar(F.fhp, F.foe.hp, 'foe')])
+        h('div', { class: 'fighter boss' + (fl && fl.dealt ? ' hit' : '') }, [fl ? pop(fl.dealt, fl.crit ? 'crit' : 'foe') : null, h('span', { class: 'fighter-ico', text: F.foe.icon }), h('b', { text: F.foe.name + ' · ⚔' + F.foe.atk + (F.acid ? ' · 🧪' + F.acid : '') }), hpBar(F.fhp, F.foe.hp, 'foe')])
       ]));
       arena.appendChild(skillBar());
       if (F.over) {

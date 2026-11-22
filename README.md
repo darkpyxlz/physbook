@@ -11,12 +11,12 @@ Every chapter has four parts:
 
 | Subject | Chapters | Labs | Scored problems | Drill templates | Game |
 |---------|---------:|-----:|----------------:|----------------:|------|
-| Maths | 16 | 32 | 192 | 48 | — |
-| Physics | 24 | 48 | 516 | 72 | — |
-| Chemistry | 26 | 52 | 450 | 78 | ChemCorp |
-| Biology | 28 | 56 | 480 | 84 | Cytos |
-| Astronomy | 16 | 32 | 288 | 48 | Firmament |
-| **Total** | **110** | **220** | **1926** | **330** | |
+| Maths | 24 | 48 | 336 | 72 | — |
+| Physics | 24 | 48 | 516 | 96 | — |
+| Chemistry | 26 | 52 | 450 | 104 | ChemCorp |
+| Biology | 28 | 56 | 480 | 112 | Cytos |
+| Astronomy | 16 | 32 | 288 | 64 | Firmament |
+| **Total** | **118** | **236** | **2070** | **448** | |
 
 Every chapter has at least two labs. Many second labs use a shared explorer engine (`js/sims-explore.js`), so a chapter can describe a small model (controls, curves, a picture and a readout) as a config instead of new drawing code.
 
@@ -43,17 +43,29 @@ The Learn tab is built to keep the learning curve gentle (`js/learn.js`, `js/big
 
 ## Maths
 
-Sixteen chapters in five parts. It is a self-contained track: the other subjects do not require it.
+Twenty-four chapters in six parts. It is a self-contained track: the other subjects do not require it.
 
 | Part | Chapters |
 |------|----------|
-| Precalculus | Functions and their graphs |
+| Precalculus | Functions and their graphs; sequences, sums and the binomial theorem |
 | Calculus | Limits and continuity; the derivative; using derivatives; the integral; techniques of integration |
-| Further calculus | Sequences, series and Taylor polynomials; differential equations; calculus in several variables; complex numbers |
-| Olympiad foundations | Proof and problem-solving; number theory; counting and probability |
-| Olympiad topics | Inequalities; polynomials and functional equations; olympiad geometry |
+| Further calculus | Sequences, series and Taylor polynomials; differential equations; calculus in several variables; vector calculus; complex numbers |
+| Linear algebra and statistics | Vectors and matrices; probability and statistics |
+| Olympiad foundations | Proof and problem-solving; number theory; counting and probability; recurrences and generating functions |
+| Olympiad topics | Inequalities; polynomials and functional equations; olympiad geometry; graph theory; games, invariants and strategy; Diophantine equations |
 
-Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton's method, Riemann sums and the area function, Taylor polynomials, slope fields and Euler's method, contour maps with gradients, roots of unity, Collatz, times tables on a circle, Pascal's triangle mod m, Monte Carlo π, AM–GM in a semicircle, Lagrange interpolation, the inscribed angle theorem, the Euler line and the power of a point. The RPG adds five maths bosses, a Logic attribute and a Mathematician class (four skill choices per level-up).
+Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton's method, Riemann sums and the area function, Taylor polynomials, slope fields and Euler's method, contour maps with gradients, roots of unity, Collatz, times tables on a circle, Pascal's triangle mod m, Monte Carlo π, AM–GM in a semicircle, Lagrange interpolation, the inscribed angle theorem, the Euler line and the power of a point. Many figures and labs have **draggable points**: drag matrix columns, vector-field endpoints, regression data, graph vertices or the bounds of a normal distribution, and play Nim against a perfect computer opponent. The RPG adds six maths bosses, a Logic attribute and a Mathematician class (four skill choices per level-up).
+
+## The motivation loop
+
+`js/loop.js`. Learning earns XP; XP fills three meters at once, and each one pays the RPG currencies that upgrade your hero, who fights the bosses that passing chapters unlocks.
+
+- **Daily goal** (Casual 20, Regular 60, Serious 120 or Intense 200 XP, shown as a ring in the header): reaching it pays gold, a key and egg fragments and keeps your streak. **Streak milestones** at 3, 7, 14, 30, 60 and 100 days pay gems and chests. **Streak freezes** (200 gems, hold up to two) are used automatically if you miss a day.
+- **Study Pass** (`#pass`): every 150 XP earned in the calendar month unlocks one of 40 reward tiers (gold, keys, gems, fragments, coffee, Golden Eggs every 5th tier, Research Grant Chests every 10th). It resets on the 1st.
+- **Weekly league** (`#league`): you and 14 simulated rival study bots, ranked by XP earned this week. The top 5 move up through ten leagues (Bronze to Diamond), the bottom 5 move down, and the top 3 win gems and keys. Rival paces rise in higher leagues; the page says plainly that they are bots.
+- **Chapter rewards**: each chapter star pays out (a key and gold, then gems and fragments, then a chest for the third), passing a chapter pays a key, and reaching 50% and 80% mastery pays gems.
+- **Today's plan** on the dashboard lists the next best actions with their payoff: the next section to read, reviews due, the ×2 daily challenge, unclaimed pass rewards, or spending your loot.
+- **Feedback**: a reward window with confetti for every milestone, a floating "+XP" on each solved problem, level-up celebrations, and damage numbers and hit shakes in fights.
 
 ## Skill tree
 
@@ -271,11 +283,12 @@ js/bigideas.js        the plain-language "big idea" for every chapter
 js/learn.js           Try-it quizzes, inline concept checks, refreshers, PB.addFigures
 js/figures.js         interactive figures inside the text of the science chapters
 js/adaptive.js        mastery model, adaptive practice and spaced review, #adapt
+js/loop.js            daily goal, streaks and freezes, Study Pass, weekly league, chapter rewards, reward window, #pass, #league
 js/games.js           game tabs and progress read from the games' saves
 js/sims-explore.js    the general explorer lab engine and PB.addLabs
 js/prereqs.js         the skill tree: prerequisites, locks, test-outs, #tree
 js/rpg.js             hero, gear, pets, skills, bosses, #hero
-js/extra/*.js         second labs and two further batches of problems (loaded last so problem ids stay stable)
+js/extra/*.js         second labs, further problem batches (including maths-extra.js) and extra drills (drills-extra.js); loaded last so problem ids stay stable
 games/                copies of ChemCorp, Cytos and Firmament
 js/app.js             routing, views, problem cards, HUD
 js/solver.js          equation board UI (cards, wires, menus, known values)
@@ -297,4 +310,4 @@ Each chapter file calls `PB.addChapter({...})` with a `subject` (`physics` by de
 
 `type` can be `num` (numerical, graded within `tol`), `mcq` (`answer` is the option index) or `multi` (`answer` is an array of indices).
 
-A chapter can also carry `big` (its plain-language opening), `figures` (interactive figures in the text: `{ s: sectionIndex, title, caption, params }`, where `params` is an explorer config) and, per section, `quizzes` (quick checks: `{ type: 'num' | 'mcq', q, answer, options, unit, tol, hints, solution }`). Put `<div data-quiz="0"></div>` or `<div data-fig="0"></div>` in a section's HTML to place a quiz or figure at that spot; otherwise they go at the end of the section. Worked examples written as `<details class="example">` become Try-it quizzes when `PB.EXQ['chapter:section:index']` gives their answer.
+A chapter can also carry `big` (its plain-language opening), `figures` (interactive figures in the text: `{ s: sectionIndex, title, caption, params }`, where `params` is an explorer config) and, per section, `quizzes` (quick checks: `{ type: 'num' | 'mcq', q, answer, options, unit, tol, hints, solution }`). An explorer config can declare draggable handles with `drag: [{ plot: 0, get: (v) => [x, y], set: (v, x, y) => { ... } }]` (data coordinates of a plot) or `{ pic: true, ... }` (canvas pixels of the picture). Put `<div data-quiz="0"></div>` or `<div data-fig="0"></div>` in a section's HTML to place a quiz or figure at that spot; otherwise they go at the end of the section. Worked examples written as `<details class="example">` become Try-it quizzes when `PB.EXQ['chapter:section:index']` gives their answer.

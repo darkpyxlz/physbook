@@ -36,8 +36,10 @@
   let showing = false;
   PB.rewardModal = function (o) { queue.push(o); if (!showing) nextModal(); };
   function nextModal() {
+    if (!queue.length) { showing = false; return; }
+    // Do not interrupt a fight mid-question: wait until the battle is over or left.
+    if (document.querySelector('.battle .battle-q, .battle .skill-pick')) { showing = true; setTimeout(nextModal, 1000); return; }
     const o = queue.shift();
-    if (!o) { showing = false; return; }
     showing = true;
     const close = () => { ov.classList.add('out'); setTimeout(() => { ov.remove(); nextModal(); }, 220); };
     const ov = h('div', { class: 'reward-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': o.title, onclick: (e) => { if (e.target === ov) close(); } }, [
