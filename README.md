@@ -1,23 +1,59 @@
 # Scibook
 
-An interactive science textbook for students working towards olympiads in physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving). Each science has its own tab, its own chapters and its own game, and all of them feed one shared level, streak, quest list and badge collection.
+An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving). Each subject has its own tab and chapters, three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
 
 Every chapter has four parts:
 
-- **Learn**: the theory, with key results, worked examples, common traps and insight boxes.
+- **Learn**: the theory, with key results, common traps and insight boxes, plus quizzes and interactive figures inside the text (see below).
 - **Lab**: one or two interactive simulations with suggested experiments.
 - **Problems**: a scored set that climbs from concept checks to olympiad-level problems, with hints and full solutions.
 - **Formulas**: the chapter's key results, also collected on a formula sheet grouped by subject.
 
 | Subject | Chapters | Labs | Scored problems | Drill templates | Game |
 |---------|---------:|-----:|----------------:|----------------:|------|
+| Maths | 16 | 32 | 192 | 48 | — |
 | Physics | 24 | 48 | 516 | 72 | — |
 | Chemistry | 26 | 52 | 450 | 78 | ChemCorp |
 | Biology | 28 | 56 | 480 | 84 | Cytos |
 | Astronomy | 16 | 32 | 288 | 48 | Firmament |
-| **Total** | **94** | **188** | **1734** | **282** | |
+| **Total** | **110** | **220** | **1926** | **330** | |
 
 Every chapter has at least two labs. Many second labs use a shared explorer engine (`js/sims-explore.js`), so a chapter can describe a small model (controls, curves, a picture and a readout) as a config instead of new drawing code.
+
+## Learning in the text
+
+The Learn tab is built to keep the learning curve gentle (`js/learn.js`, `js/bigideas.js`, `js/figures.js`):
+
+- **The big idea**: every chapter opens with a plain-language summary and an everyday picture, before any formula.
+- **Before you start**: a fold-out refresher of the prerequisite chapters, with their big ideas and key formulas.
+- **Try it**: the worked examples are quizzes, not reveal boxes. You answer first (number or multiple choice), can ask for one step-by-step hint at a time, and the worked solution opens once you are right or after two honest attempts. Each first solve pays 3 XP.
+- **Check your understanding**: each chapter's scored concept checks appear inline, right after the section they test (matched by the words they share). Solving them there counts towards the chapter.
+- **Figures**: every chapter has at least one interactive figure inside the text (a slider-driven plot or diagram), 117 in all.
+- Maths chapters also carry authored **quick checks** in the middle of each section.
+
+## Adaptive practice
+
+`js/adaptive.js`, page `#adapt` (or `#adapt-<chapter>` for one chapter).
+
+- Every answer anywhere in the book (problems, inline checks, Try-it quizzes, gym drills) updates a per-chapter skill estimate with a simple logistic (Elo-style) model. Each chapter page shows the resulting **mastery** bar.
+- Adaptive practice serves the question you have about a 70% chance of getting right, chosen from the chapter's unsolved problems and its randomised drills.
+- After a mistake it switches to an easier **stepping stone** and offers a link back to the section that explains the idea. After three right in a row it serves a **stretch** question.
+- Chapters where you slipped come back for **spaced review** after 10 minutes, then 1, 3, 7, 16 and 35 days. The dashboard shows how many reviews are due.
+- Across the whole book it weights weaker chapters more heavily, and always does due reviews first.
+
+## Maths
+
+Sixteen chapters in five parts. It is a self-contained track: the other subjects do not require it.
+
+| Part | Chapters |
+|------|----------|
+| Precalculus | Functions and their graphs |
+| Calculus | Limits and continuity; the derivative; using derivatives; the integral; techniques of integration |
+| Further calculus | Sequences, series and Taylor polynomials; differential equations; calculus in several variables; complex numbers |
+| Olympiad foundations | Proof and problem-solving; number theory; counting and probability |
+| Olympiad topics | Inequalities; polynomials and functional equations; olympiad geometry |
+
+Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton's method, Riemann sums and the area function, Taylor polynomials, slope fields and Euler's method, contour maps with gradients, roots of unity, Collatz, times tables on a circle, Pascal's triangle mod m, Monte Carlo π, AM–GM in a semicircle, Lagrange interpolation, the inscribed angle theorem, the Euler line and the power of a point. The RPG adds five maths bosses, a Logic attribute and a Mathematician class (four skill choices per level-up).
 
 ## Skill tree
 
@@ -32,7 +68,7 @@ Chapters unlock Duolingo-style. Each chapter lists its prerequisites in `js/prer
 
 A Survivor.io-style equipment RPG on top of the XP system (`js/rpg.js`, page `#hero`):
 
-- **Classes**: Physicist (+20% attack), Chemist (coffee heals double), Biologist (+25% HP) or Astronomer (+10% crit). Your class's science pays 25% more gold.
+- **Classes**: Mathematician (four skill choices per level-up), Physicist (+20% attack), Chemist (coffee heals double), Biologist (+25% HP) or Astronomer (+10% crit). Your class's subject pays 25% more gold.
 - **Equipment**: six slots (weapon, necklace, gloves for attack; armour, belt, boots for HP), twelve items and six rarities: Common, Good, Better, Excellent, Epic, Legend. Each item has a special ability that unlocks at Excellent and grows at Epic and Legend (double strikes, crits, blocks, dodges, lifesteal, revives, combo damage, bonus loot).
 - **Merge**: three copies of the same item at the same rarity merge into one of the next rarity. Merging is the only way to make gear stronger; there are no item levels. "Merge all" and "Equip best" do it in one click. Salvage spare cards for gold and egg fragments.
 - **Pets**: Pavlov the dog (bites on correct answers), Schrödinger the cat (dodges), Darwin the finch (heals), Tardi the tardigrade (survives a lethal hit), Dolly the sheep (clones your hit) and Fermi the fox (pounces every turn). One pet is active; it adds 3–30% to attack and HP by rarity, and its ability grows with rarity. Pets merge like gear.
@@ -43,8 +79,8 @@ A Survivor.io-style equipment RPG on top of the XP system (`js/rpg.js`, page `#h
   - 🗝️ keys from the daily challenge, unlocking chapters, level-ups and bosses;
   - 🧩 egg fragments from olympiad problems, gym streaks, bosses, the Trials and salvaging.
 - **Chests and eggs**: a Supply Crate (one key), a Research Grant Chest (gems; an Epic is guaranteed within 30), a Pet Egg (10 fragments) and a Golden Egg (gems; Epic pet within 30). There is also a 7-day daily supply ladder.
-- **Attributes**: Might, Alchemy, Vitality and Insight grow with the points earned in each science and multiply your damage against that science's bosses.
-- **Unit bosses**: every part of every science has a boss (21 in all). A boss appears once you pass three chapters of its unit; correct answers to drills from that unit strike it, wrong answers let it strike back. Bosses can be re-fought for gold, keys and fragments.
+- **Attributes**: Logic, Might, Alchemy, Vitality and Insight grow with the points earned in each subject and multiply your damage against that subject's bosses.
+- **Unit bosses**: every part of every subject has a boss (26 in all). A boss appears once you pass three chapters of its unit; correct answers to drills from that unit strike it, wrong answers let it strike back. Bosses can be re-fought for gold, keys and fragments.
 - **The Trials**: an endless tower of stronger and stronger monsters, three runs a day, using questions from every open chapter. Skills carry from floor to floor. Every floor pays gold and a fragment, every 5th gems and every 10th a key.
 - Eleven badges cover bosses, gear, pets, skills, gold and the Trials. Older saves are migrated: gold spent on item levels is refunded and design scrolls become egg fragments.
 
@@ -230,6 +266,11 @@ js/chapters/NN-*.js   one file per physics chapter: sections, labs, formulas, pr
 js/chemistry/NN-*.js  chemistry chapters (with their drills)
 js/biology/NN-*.js    biology chapters (with their drills)
 js/astronomy/NN-*.js  astronomy chapters (with their drills)
+js/maths/*.js         maths chapters, several per file, with their drills, quick checks and figures
+js/bigideas.js        the plain-language "big idea" for every chapter
+js/learn.js           Try-it quizzes, inline concept checks, refreshers, PB.addFigures
+js/figures.js         interactive figures inside the text of the science chapters
+js/adaptive.js        mastery model, adaptive practice and spaced review, #adapt
 js/games.js           game tabs and progress read from the games' saves
 js/sims-explore.js    the general explorer lab engine and PB.addLabs
 js/prereqs.js         the skill tree: prerequisites, locks, test-outs, #tree
@@ -255,3 +296,5 @@ Each chapter file calls `PB.addChapter({...})` with a `subject` (`physics` by de
 ```
 
 `type` can be `num` (numerical, graded within `tol`), `mcq` (`answer` is the option index) or `multi` (`answer` is an array of indices).
+
+A chapter can also carry `big` (its plain-language opening), `figures` (interactive figures in the text: `{ s: sectionIndex, title, caption, params }`, where `params` is an explorer config) and, per section, `quizzes` (quick checks: `{ type: 'num' | 'mcq', q, answer, options, unit, tol, hints, solution }`). Put `<div data-quiz="0"></div>` or `<div data-fig="0"></div>` in a section's HTML to place a quiz or figure at that spot; otherwise they go at the end of the section. Worked examples written as `<details class="example">` become Try-it quizzes when `PB.EXQ['chapter:section:index']` gives their answer.

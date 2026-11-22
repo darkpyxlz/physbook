@@ -60,10 +60,12 @@
     physicist: { name: 'Physicist', icon: '⚛️', subject: 'physics', attr: 'Might', perk: '+20% attack' },
     chemist: { name: 'Chemist', icon: '⚗️', subject: 'chemistry', attr: 'Alchemy', perk: 'coffee heals double' },
     biologist: { name: 'Biologist', icon: '🧬', subject: 'biology', attr: 'Vitality', perk: '+25% HP' },
-    astronomer: { name: 'Astronomer', icon: '🔭', subject: 'astronomy', attr: 'Insight', perk: '+10% critical-hit chance' }
+    astronomer: { name: 'Astronomer', icon: '🔭', subject: 'astronomy', attr: 'Insight', perk: '+10% critical-hit chance' },
+    mathematician: { name: 'Mathematician', icon: '∑', subject: 'maths', attr: 'Logic', perk: 'four skill choices at every level-up instead of three' }
   };
-  const ATTR = { physics: 'Might', chemistry: 'Alchemy', biology: 'Vitality', astronomy: 'Insight' };
+  const ATTR = { maths: 'Logic', physics: 'Might', chemistry: 'Alchemy', biology: 'Vitality', astronomy: 'Insight' };
   const BOSS_NAMES = {
+    maths: { 'Precalculus': ['The Asymptote Serpent', '🐍'], 'Calculus': ['The Infinitesimal Imp', '😈'], 'Further Calculus': ['The Divergent Dragon', '🐲'], 'Olympiad Foundations': ['The Pigeonhole Golem', '🗿'], 'Olympiad Topics': ['The Lemma Leviathan', '🐙'] },
     physics: { 'Foundations': ['The Dimensional Golem', '🗿'], 'Mechanics': ['Newton’s Juggernaut', '🦏'], 'Thermal Physics': ['The Entropy Wyrm', '🐉'], 'Electricity & Magnetism': ['The Maxwell Hydra', '🐍'], 'Optics': ['The Prism Wraith', '👻'], 'Modern Physics': ['The Quantum Phantom', '🌫️'], 'Olympiad Extensions': ['The Lagrangian Leviathan', '🐋'] },
     chemistry: { 'Foundations': ['The Mole Rat King', '🐀'], 'Physical Chemistry': ['The Gibbs Behemoth', '🦣'], 'Inorganic Chemistry': ['The Lanthanide Lich', '💀'], 'Organic Chemistry': ['The Carbocation Chimera', '🦁'], 'Analysis': ['The Spectral Sphinx', '🗝️'] },
     biology: { 'Cells and Molecules': ['The Rogue Ribosome', '🧫'], 'Genetics': ['The Mutant Mendel', '🧟'], 'Physiology': ['The Adrenal Ogre', '👹'], 'Diversity of Life': ['The Chimeric Kraken', '🦑'], 'Evolution and Ecology': ['The Red Queen', '👑'] },
@@ -467,7 +469,7 @@
     const lv = (id) => F.sk[id] || 0, ev = (id) => (F.sk[id] >= 5 ? 1.5 : 1);
     function newQ() { const d = pool[Math.floor(Math.random() * pool.length)]; const inst = d.gen(PB.rng((Math.random() * 4294967296) >>> 0)); inst.title = d.title; inst.ch = PB.chapter(d.chapter).title; F.inst = inst; }
     function offer() {
-      const avail = SKILLS.filter((s) => lv(s.id) < 5).sort(() => Math.random() - 0.5).slice(0, 3);
+      const avail = SKILLS.filter((s) => lv(s.id) < 5).sort(() => Math.random() - 0.5).slice(0, r.cls === 'mathematician' ? 4 : 3);
       F.choice = avail.length ? avail.map((s) => s.id) : null;
     }
     function pick(id) {

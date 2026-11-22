@@ -89,12 +89,14 @@
         fb.innerHTML = '';
         if (ok) {
           st.combo++;
+          PB.emit({ type: "drill", chapter: inst.chapter, ok: true });
           const xp = PB.gymAnswer(true, st.combo, inst.xp);
           if (st.sprint) st.sprint.score++;
           fb.appendChild(h('div', { class: 'feedback ok', text: 'Correct' + (xp ? ' · +' + xp + ' XP' : ' · daily gym XP cap reached') + (st.combo > 1 ? ' · combo ×' + st.combo : '') }));
           card.classList.add('flash-ok');
           if (st.sprint) { setTimeout(next, 450); }
         } else {
+          PB.emit({ type: "drill", chapter: inst.chapter, ok: false });
           PB.gymAnswer(false, 0);
           const lost = st.combo;
           st.combo = 0;

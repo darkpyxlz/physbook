@@ -8,15 +8,17 @@
 
   /* ---------- Subjects ---------- */
   PB.SUBJECTS = [
-    { id: 'physics', name: 'Physics', mark: 'Φ', blurb: 'From units and vectors to quantum and nuclear physics, with olympiad extensions in analytical mechanics, astrophysics and experimental work.',
+    { id: 'maths', name: 'Maths', mark: '∫', glyph: '∫', blurb: 'Calculus from functions and limits to differential equations and several variables, then olympiad mathematics: proof, number theory, counting, inequalities, polynomials and geometry.',
+      parts: ['Precalculus', 'Calculus', 'Further Calculus', 'Olympiad Foundations', 'Olympiad Topics'] },
+    { id: 'physics', name: 'Physics', mark: 'Φ', glyph: 'Φ', blurb: 'From units and vectors to quantum and nuclear physics, with olympiad extensions in analytical mechanics, astrophysics and experimental work.',
       parts: ['Foundations', 'Mechanics', 'Thermal Physics', 'Electricity & Magnetism', 'Optics', 'Modern Physics', 'Olympiad Extensions'] },
-    { id: 'chemistry', name: 'Chemistry', mark: 'Ch', blurb: 'Atoms, bonding, energetics, equilibria, kinetics, electrochemistry and organic chemistry, up to olympiad level.',
+    { id: 'chemistry', name: 'Chemistry', mark: 'Ch', glyph: '⌬', blurb: 'Atoms, bonding, energetics, equilibria, kinetics, electrochemistry and organic chemistry, up to olympiad level.',
       parts: ['Foundations', 'Physical Chemistry', 'Inorganic Chemistry', 'Organic Chemistry', 'Analysis'],
       game: { id: 'chemcorp', name: 'ChemCorp', path: 'games/chemcorp/index.html', blurb: 'An organic chemistry idle game: run real reactions, research 145 of them and automate a chemical plant.' } },
-    { id: 'biology', name: 'Biology', mark: 'Bi', blurb: 'Cells, biochemistry, genetics, physiology, evolution and ecology, with the quantitative tools of olympiad biology.',
+    { id: 'biology', name: 'Biology', mark: 'Bi', glyph: '✿', blurb: 'Cells, biochemistry, genetics, physiology, evolution and ecology, with the quantitative tools of olympiad biology.',
       parts: ['Cells and Molecules', 'Genetics', 'Physiology', 'Diversity of Life', 'Evolution and Ecology'],
       game: { id: 'cytos', name: 'Cytos', path: 'games/cytos/index.html', blurb: 'You are a cell: express genes, build organelles, respire, signal, repair DNA and fight viruses.' } },
-    { id: 'astronomy', name: 'Astronomy', mark: 'As', blurb: 'The sky, the Solar System, stars, galaxies and the universe, with the observational skills of astronomy olympiads.',
+    { id: 'astronomy', name: 'Astronomy', mark: 'As', glyph: '✦', blurb: 'The sky, the Solar System, stars, galaxies and the universe, with the observational skills of astronomy olympiads.',
       parts: ['The Sky', 'The Solar System', 'The Stars', 'Galaxies and Cosmology'],
       game: { id: 'firmament', name: 'Firmament', path: 'games/firmament/index.html', blurb: 'Run a space corporation on the real night sky and colonise all 88 constellations.' } }
   ];

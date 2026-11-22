@@ -5,6 +5,11 @@
   'use strict';
   const PB = window.PB;
   PB.PREREQS = {
+    // Mathematics (a self-contained track: the other sciences do not require it)
+    'math-limits': ['math-functions'], 'math-derivatives': ['math-limits'], 'math-applications': ['math-derivatives'], 'math-integrals': ['math-derivatives'],
+    'math-techniques': ['math-integrals'], 'math-series': ['math-techniques'], 'math-odes': ['math-techniques'], 'math-multivar': ['math-applications', 'math-integrals'],
+    'math-complex': ['math-functions'], 'math-proof': ['math-functions'], 'math-numbertheory': ['math-proof'], 'math-combinatorics': ['math-proof'],
+    'math-inequalities': ['math-proof'], 'math-algebra': ['math-proof', 'math-complex'], 'math-geometry': ['math-proof'],
     // Physics
     'kinematics': ['toolkit'], 'newton': ['kinematics'], 'energy': ['newton'], 'momentum': ['newton'], 'rotation': ['energy', 'momentum'],
     'gravitation': ['energy'], 'oscillations': ['energy'], 'fluids': ['newton'], 'waves': ['oscillations'], 'thermal': ['energy'],
@@ -59,7 +64,9 @@
 
   // Announce chapters that a solve has just unlocked.
   let before = null;
-  function snapshot() { const m = {}; PB.chapters.forEach(function (c) { m[c.id] = PB.isUnlocked(c); }); return m; }
+  // Ignore free roam here: only unlocks you earned should be announced (and rewarded).
+  function earned(c) { const S = PB.S; return !!(S.unlocked && S.unlocked[c.id]) || PB.prereqsOf(c).every(PB.isPassed); }
+  function snapshot() { const m = {}; PB.chapters.forEach(function (c) { m[c.id] = earned(c); }); return m; }
   PB.on(function (ev) {
     if (ev.type !== 'xp') return;
     if (!before) { before = snapshot(); return; }

@@ -106,7 +106,7 @@
     const nav = $('#sidebar');
     nav.innerHTML = '';
     nav.appendChild(h('div', { class: 'rail-group', text: 'Book' }));
-    [['home', 'Dashboard'], ['hero', 'Hero & bosses'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
+    [['home', 'Dashboard'], ['adapt', 'Adaptive practice'], ['hero', 'Hero & bosses'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
       nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
     });
     const sub = PB.subject(curSubject());
@@ -157,7 +157,7 @@
   function problemCard(p, opts) {
     opts = opts || {};
     const ch = PB.chapter(p.chapter);
-    const card = h('article', { class: 'prob lv-' + p.level, id: 'prob-' + p.id });
+    const card = h('article', { class: 'prob lv-' + p.level + (opts.compact ? ' compact' : ''), id: (opts.compact ? 'inl-' : 'prob-') + p.id });
     let selected = p.type === 'multi' ? [] : null;
     let confirming = false;
     let feedback = null;
@@ -286,12 +286,13 @@
     });
   };
   function mountLab(ch, lab) {
-    const wrap = h('section', { class: 'lab' });
-    wrap.appendChild(h('div', { class: 'lab-head' }, [h('div', { class: 'eyebrow', text: 'Lab' }), h('h2', { text: lab.title }), h('p', { html: lab.desc || '' })]));
+    const wrap = h('section', { class: 'lab' + (lab.figure ? ' figure' : '') });
+    if (lab.figure) wrap.appendChild(h('div', { class: 'fig-head' }, [h('span', { class: 'fig-tag', text: 'Figure' }), h('b', { html: lab.title || '' }), h('span', { class: 'fig-cap', html: lab.desc || '' })]));
+    else wrap.appendChild(h('div', { class: 'lab-head' }, [h('div', { class: 'eyebrow', text: 'Lab' }), h('h2', { text: lab.title }), h('p', { html: lab.desc || '' })]));
     const stage = h('div', { class: 'lab-stage' });
     const controls = h('div', { class: 'lab-controls' });
     wrap.appendChild(h('div', { class: 'lab-body' }, [stage, controls]));
-    if (lab.tasks && lab.tasks.length) {
+    if (lab.tasks && lab.tasks.length && !lab.figure) {
       const ul = h('ul');
       lab.tasks.forEach(function (t) { ul.appendChild(h('li', { html: t })); });
       wrap.appendChild(h('div', { class: 'lab-tasks' }, [h('h3', { text: 'Try this' }), ul]));
@@ -323,7 +324,7 @@
         return obj;
       },
       slider: function (o) {
-        const id = 'lab-' + ch.id + '-' + o.id;
+        const id = 'lab-' + ch.id + '-' + (lab.id ? lab.id + '-' : '') + o.id;
         const out = h('output', { for: id });
         const inp = h('input', { type: 'range', id: id, min: o.min, max: o.max, step: o.step || (o.max - o.min) / 100, value: o.value });
         const fmt = o.format || function (v) { return PB.fmt(v, 3) + (o.unit ? ' ' + o.unit : ''); };
@@ -383,7 +384,7 @@
     };
     const io = new IntersectionObserver(function (es) { visible = es[0].isIntersecting; });
     io.observe(stage);
-    const mark = function () { if (PB.markLab(ch.id)) {} wrap.removeEventListener('pointerdown', mark); wrap.removeEventListener('input', mark); };
+    const mark = function () { if (!lab.figure && PB.markLab(ch.id)) {} wrap.removeEventListener('pointerdown', mark); wrap.removeEventListener('input', mark); };
     wrap.addEventListener('pointerdown', mark);
     wrap.addEventListener('input', mark);
     activeLabs.push(function () { if (rafId != null) cancelAnimationFrame(rafId); io.disconnect(); cleanups.forEach(function (f) { f(); }); });
@@ -440,9 +441,9 @@
 
     const hero = h('section', { class: 'home-hero' }, [
       h('div', {}, [
-        h('div', { class: 'eyebrow', text: PB.SUBJECTS.length + ' sciences · ' + PB.chapters.length + ' chapters · ' + all.length + ' scored problems · ' + PB.chapters.reduce(function (a, c) { return a + (c.labs || []).length; }, 0) + ' labs · 3 games' }),
+        h('div', { class: 'eyebrow', text: PB.SUBJECTS.length + ' subjects · ' + PB.chapters.length + ' chapters · ' + all.length + ' scored problems · ' + PB.chapters.reduce(function (a, c) { return a + (c.labs || []).length; }, 0) + ' labs · 3 games' }),
         h('h1', { text: 'Learn the idea. Run the lab. Earn the points.', style: 'margin-top:10px' }),
-        h('p', { class: 'lede', html: 'Physics, chemistry, biology and astronomy in one place, each taught chapter by chapter with interactive labs and scored problems that climb to olympiad level. Each science comes with a game where your knowledge pays off, and everything feeds one level, one streak and one set of badges.' }),
+        h('p', { class: 'lede', html: 'Mathematics, physics, chemistry, biology and astronomy in one place, each taught chapter by chapter with interactive labs and scored problems that climb to olympiad level. Each science comes with a game where your knowledge pays off, and everything feeds one level, one streak and one set of badges.' }),
         h('div', { class: 'hero-cta' }, [
           h('a', { class: 'btn primary', href: '#ch-' + cont.id, text: (S().lastChapter ? 'Continue: ' : 'Start: ') + PB.subject(cont.subject).name + ' ' + cont.num + '. ' + cont.title }),
           h('a', { class: 'btn', href: '#gym', text: 'Practice gym' }),
@@ -463,7 +464,7 @@
     ]);
     wrap.appendChild(hero);
 
-    wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Sciences' }), h('p', { text: 'Rings show reading plus problems completed.' })]));
+    wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Subjects' }), h('p', { text: 'Rings show reading plus problems completed.' })]));
     const sg = h('div', { class: 'subj-grid' });
     PB.SUBJECTS.forEach(function (sub) {
       const st = subjectStats(sub.id);
@@ -538,7 +539,8 @@
     tab = tab || 'learn';
     const wrap = h('div', { class: 'wrap' });
     const st = PB.chapterStats(ch);
-    const head = h('header', { class: 'ch-head' }, [
+    const head = h('header', { class: 'ch-head subj-' + ch.subject }, [
+      h('div', { class: 'ch-art', 'aria-hidden': 'true', text: PB.subject(ch.subject).glyph || PB.subject(ch.subject).mark }),
       h('div', { class: 'eyebrow', html: '<a href="#' + ch.subject + '">' + PB.subject(ch.subject).name + '</a> · Chapter ' + ch.num + ' · ' + ch.part }),
       h('h1', { text: ch.title }),
       h('p', { class: 'lede', html: ch.subtitle }),
@@ -549,6 +551,7 @@
         h('span', { class: 'pts', text: st.earned + ' / ' + st.possible + ' pts' })
       ])
     ]);
+    if (PB.chapterHeadExtras) PB.chapterHeadExtras(ch, head);
     wrap.appendChild(head);
     const tabs = h('nav', { class: 'tabs', 'aria-label': 'Chapter sections' });
     [['learn', 'Learn', st.sections], ['lab', 'Lab', (ch.labs || []).length], ['problems', 'Problems', st.total], ['formulas', 'Formulas', (ch.formulas || []).length]].forEach(function (t) {
@@ -560,6 +563,7 @@
     const labStarts = [];
 
     if (tab === 'learn') {
+      if (PB.chapterIntro) PB.chapterIntro(ch, content);
       if (ch.goals && ch.goals.length) {
         const toc = h('div', { class: 'toc' }, [h('div', { class: 'eyebrow', text: 'In this chapter' })]);
         const ol = h('ol');
@@ -575,6 +579,7 @@
         const sec = h('section', { class: 'section prose' });
         sec.appendChild(h('h2', { id: 'sec-' + i, html: '<span class="sec-num">' + ch.num + '.' + (i + 1) + '</span><span>' + s.title + '</span>' }));
         sec.appendChild(h('div', { html: s.html }));
+        if (PB.enhanceSection) PB.enhanceSection(ch, i, sec, labStarts);
         const done = !!S().read[ch.id + ':' + i];
         const btn = h('button', { class: 'btn small' + (done ? ' done' : ''), type: 'button', text: done ? '✓ Read' : 'Mark as read (+5 XP)', onclick: function () {
           if (PB.markRead(ch.id, i)) { btn.className = 'btn small done'; btn.textContent = '✓ Read'; }
@@ -788,6 +793,7 @@
   renderHUD();
   route();
   PB.problemCard = problemCard;
+  PB.mountLab = mountLab;
   /* Hooks for extra views (such as the equation board in solver.js) */
   PB.h = h;
   PB.typeset = typeset;
