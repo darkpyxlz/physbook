@@ -65,7 +65,7 @@
   };
   const ATTR = { maths: 'Logic', physics: 'Might', chemistry: 'Alchemy', biology: 'Vitality', astronomy: 'Insight' };
   const BOSS_NAMES = {
-    maths: { 'Precalculus': ['The Asymptote Serpent', '🐍'], 'Calculus': ['The Infinitesimal Imp', '😈'], 'Further Calculus': ['The Divergent Dragon', '🐲'], 'Olympiad Foundations': ['The Pigeonhole Golem', '🗿'], 'Olympiad Topics': ['The Lemma Leviathan', '🐙'] },
+    maths: { 'Precalculus': ['The Asymptote Serpent', '🐍'], 'Calculus': ['The Infinitesimal Imp', '😈'], 'Further Calculus': ['The Divergent Dragon', '🐲'], 'Linear Algebra and Statistics': ['The Eigen Wraith', '👁️'], 'Olympiad Foundations': ['The Pigeonhole Golem', '🗿'], 'Olympiad Topics': ['The Lemma Leviathan', '🐙'] },
     physics: { 'Foundations': ['The Dimensional Golem', '🗿'], 'Mechanics': ['Newton’s Juggernaut', '🦏'], 'Thermal Physics': ['The Entropy Wyrm', '🐉'], 'Electricity & Magnetism': ['The Maxwell Hydra', '🐍'], 'Optics': ['The Prism Wraith', '👻'], 'Modern Physics': ['The Quantum Phantom', '🌫️'], 'Olympiad Extensions': ['The Lagrangian Leviathan', '🐋'] },
     chemistry: { 'Foundations': ['The Mole Rat King', '🐀'], 'Physical Chemistry': ['The Gibbs Behemoth', '🦣'], 'Inorganic Chemistry': ['The Lanthanide Lich', '💀'], 'Organic Chemistry': ['The Carbocation Chimera', '🦁'], 'Analysis': ['The Spectral Sphinx', '🗝️'] },
     biology: { 'Cells and Molecules': ['The Rogue Ribosome', '🧫'], 'Genetics': ['The Mutant Mendel', '🧟'], 'Physiology': ['The Adrenal Ogre', '👹'], 'Diversity of Life': ['The Chimeric Kraken', '🦑'], 'Evolution and Ecology': ['The Red Queen', '👑'] },

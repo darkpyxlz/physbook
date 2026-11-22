@@ -8,8 +8,8 @@
 
   /* ---------- Subjects ---------- */
   PB.SUBJECTS = [
-    { id: 'maths', name: 'Maths', mark: '∫', glyph: '∫', blurb: 'Calculus from functions and limits to differential equations and several variables, then olympiad mathematics: proof, number theory, counting, inequalities, polynomials and geometry.',
-      parts: ['Precalculus', 'Calculus', 'Further Calculus', 'Olympiad Foundations', 'Olympiad Topics'] },
+    { id: 'maths', name: 'Maths', mark: '∫', glyph: '∫', blurb: 'Calculus from functions and limits to vector calculus, linear algebra and statistics, then olympiad mathematics: proof, number theory, counting, recurrences, inequalities, polynomials, geometry, graphs, games and Diophantine equations.',
+      parts: ['Precalculus', 'Calculus', 'Further Calculus', 'Linear Algebra and Statistics', 'Olympiad Foundations', 'Olympiad Topics'] },
     { id: 'physics', name: 'Physics', mark: 'Φ', glyph: 'Φ', blurb: 'From units and vectors to quantum and nuclear physics, with olympiad extensions in analytical mechanics, astrophysics and experimental work.',
       parts: ['Foundations', 'Mechanics', 'Thermal Physics', 'Electricity & Magnetism', 'Optics', 'Modern Physics', 'Olympiad Extensions'] },
     { id: 'chemistry', name: 'Chemistry', mark: 'Ch', glyph: '⌬', blurb: 'Atoms, bonding, energetics, equilibria, kinetics, electrochemistry and organic chemistry, up to olympiad level.',

@@ -101,7 +101,7 @@ $$\sin2\theta = 2\sin\theta\cos\theta,\qquad \cos2\theta = 2\cos^2\theta - 1 = 1
   /* ===================== 2. Limits ===================== */
   const sinc = (x) => (x === 0 ? 1 : Math.sin(x) / x);
   PB.addChapter({
-    id: 'math-limits', subject: 'maths', num: 2, part: 'Calculus',
+    id: 'math-limits', subject: 'maths', num: 3, part: 'Calculus',
     title: 'Limits and Continuity',
     subtitle: R`What value does a function approach, even where it is not defined? Limits from tables and graphs, limit laws, the squeeze theorem, limits at infinity, and continuity.`,
     big: 'A limit asks: as x gets closer and closer to a, what does f(x) get close to? It does not care what happens exactly at a, only nearby. That one idea lets calculus talk about instantaneous speed and areas under curves.',
@@ -185,7 +185,7 @@ $$\lim_{x\to0}\frac{\sin x}{x} = 1\quad(x\text{ in radians}).$$
   /* ===================== 3. Derivatives ===================== */
   const DF = { sq: [(x) => x * x, (x) => 2 * x, 'x²'], cube: [(x) => x * x * x / 3, (x) => x * x, 'x³/3'], sin: [Math.sin, Math.cos, 'sin x'], exp: [Math.exp, Math.exp, 'eˣ'], ln: [(x) => (x > 0 ? Math.log(x) : NaN), (x) => (x > 0 ? 1 / x : NaN), 'ln x'] };
   PB.addChapter({
-    id: 'math-derivatives', subject: 'maths', num: 3, part: 'Calculus',
+    id: 'math-derivatives', subject: 'maths', num: 4, part: 'Calculus',
     title: 'The Derivative',
     subtitle: R`Instantaneous rate of change. Slopes of tangents, the derivative as a limit, the power, product, quotient and chain rules, derivatives of exponentials, logs and trig functions, and implicit differentiation.`,
     big: 'The derivative is the slope of a curve at a single point: zoom in far enough and any smooth curve looks like a straight line, and the derivative is that line\u2019s slope. It answers "how fast is this changing right now?"',

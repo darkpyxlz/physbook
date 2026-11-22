@@ -11,7 +11,7 @@
 
   /* ===================== 11. Proof ===================== */
   PB.addChapter({
-    id: 'math-proof', subject: 'maths', num: 11, part: 'Olympiad Foundations',
+    id: 'math-proof', subject: 'maths', num: 15, part: 'Olympiad Foundations',
     title: 'Proof and Problem-Solving',
     subtitle: R`How to be sure. Logic and direct proof, proof by contradiction, mathematical induction, the pigeonhole principle, invariants and the extremal principle.`,
     big: 'In olympiad mathematics an answer is not enough: you must show it is always true. A handful of proof patterns, used over and over, crack most problems: assume the opposite and find a contradiction, climb a ladder one rung at a time, or count pigeons and holes.',
@@ -85,7 +85,7 @@
   /* ===================== 12. Number theory ===================== */
   const divisors = (n) => { let c = 0; for (let i = 1; i <= n; i++) if (n % i === 0) c++; return c; };
   PB.addChapter({
-    id: 'math-numbertheory', subject: 'maths', num: 12, part: 'Olympiad Foundations',
+    id: 'math-numbertheory', subject: 'maths', num: 16, part: 'Olympiad Foundations',
     title: 'Number Theory',
     subtitle: R`The arithmetic of whole numbers. Primes and factorisation, greatest common divisors and Euclid's algorithm, modular arithmetic, Fermat's little theorem, Euler's theorem and the Chinese remainder theorem.`,
     big: 'Every whole number is built from primes in exactly one way, like a molecule from atoms. Modular arithmetic, "clock arithmetic", throws away everything except remainders, and that is often all a problem needs.',
@@ -162,7 +162,7 @@ $$17 \equiv 2,\ 23 \equiv 8 \pmod{15}\ \Rightarrow\ 17\cdot23 \equiv 16 \equiv 1
 
   /* ===================== 13. Counting and probability ===================== */
   PB.addChapter({
-    id: 'math-combinatorics', subject: 'maths', num: 13, part: 'Olympiad Foundations',
+    id: 'math-combinatorics', subject: 'maths', num: 17, part: 'Olympiad Foundations',
     title: 'Counting and Probability',
     subtitle: R`Counting without listing. The multiplication principle, permutations and combinations, Pascal's triangle and the binomial theorem, inclusion–exclusion, stars and bars, and probability with expected value.`,
     big: 'Counting is the art of not counting one by one. Break a choice into steps and multiply; decide whether order matters; and when it is easier, count what you do not want and subtract. Probability is then just favourable cases over all cases.',

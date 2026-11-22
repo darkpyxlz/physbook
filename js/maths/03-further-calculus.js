@@ -10,7 +10,7 @@
 
   /* ===================== 7. Series ===================== */
   PB.addChapter({
-    id: 'math-series', subject: 'maths', num: 7, part: 'Further Calculus',
+    id: 'math-series', subject: 'maths', num: 8, part: 'Further Calculus',
     title: 'Sequences, Series and Taylor Polynomials',
     subtitle: R`Adding infinitely many numbers and getting a finite answer. Geometric series, convergence tests, power series, and approximating any smooth function by a polynomial.`,
     big: 'Infinitely many terms can add to a finite total, if they shrink fast enough: ½ + ¼ + ⅛ + … = 1. Taylor series go further and rebuild a whole function, like sin x or eˣ, from the slopes at a single point.',
@@ -90,7 +90,7 @@ $$f(x) \approx f(0) + f'(0)x + \frac{f''(0)}{2!}x^2 + \frac{f'''(0)}{3!}x^3 + \d
 
   /* ===================== 8. Differential equations ===================== */
   PB.addChapter({
-    id: 'math-odes', subject: 'maths', num: 8, part: 'Further Calculus',
+    id: 'math-odes', subject: 'maths', num: 9, part: 'Further Calculus',
     title: 'Differential Equations',
     subtitle: R`Equations for rates of change. Slope fields, separable and linear first-order equations, growth and decay, second-order equations with constant coefficients, and numerical solution.`,
     big: 'Nature usually tells us how things change, not what they are: "the rate of cooling is proportional to the temperature difference". A differential equation writes that rule down, and solving it predicts the whole future from the starting state.',
@@ -170,7 +170,7 @@ $$y_{n+1} = y_n + h\,f(t_n, y_n).$$
 
   /* ===================== 9. Several variables ===================== */
   PB.addChapter({
-    id: 'math-multivar', subject: 'maths', num: 9, part: 'Further Calculus',
+    id: 'math-multivar', subject: 'maths', num: 10, part: 'Further Calculus',
     title: 'Calculus in Several Variables',
     subtitle: R`Functions of two or more inputs. Contour maps, partial derivatives, the gradient, optimisation with Lagrange multipliers, and double integrals.`,
     big: 'With two inputs a function is a landscape. A partial derivative is the slope if you walk due east or due north; the gradient is an arrow pointing straight uphill. Most of physics lives in this world of fields over space.',
@@ -246,7 +246,7 @@ $$\int_0^2\!\!\int_0^1(x + y)\,\mathrm dy\,\mathrm dx = \int_0^2\left(x + \tfrac
 
   /* ===================== 10. Complex numbers ===================== */
   PB.addChapter({
-    id: 'math-complex', subject: 'maths', num: 10, part: 'Further Calculus',
+    id: 'math-complex', subject: 'maths', num: 12, part: 'Further Calculus',
     title: 'Complex Numbers',
     subtitle: R`Numbers with a square root of −1. Arithmetic, the complex plane, modulus and argument, Euler's formula, de Moivre's theorem and roots of unity.`,
     big: 'Allow one new number, i, with i² = −1, and suddenly every polynomial has roots, rotations become multiplications, and sines and exponentials turn out to be the same thing: e^{iθ} = cos θ + i sin θ.',

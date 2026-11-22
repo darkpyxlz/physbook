@@ -9,7 +9,7 @@
 
   /* ===================== 14. Inequalities ===================== */
   PB.addChapter({
-    id: 'math-inequalities', subject: 'maths', num: 14, part: 'Olympiad Topics',
+    id: 'math-inequalities', subject: 'maths', num: 19, part: 'Olympiad Topics',
     title: 'Inequalities',
     subtitle: R`Proving that one thing is bigger than another, and finding the best possible bound. Squares are non-negative, AM–GM, Cauchy–Schwarz, rearrangement, Jensen, and strategies for olympiad inequalities.`,
     big: 'Almost every classical inequality grows from one fact: a square is never negative. AM–GM and Cauchy–Schwarz package that fact into tools that find maxima and minima without calculus, and they tell you exactly when equality happens.',
@@ -87,7 +87,7 @@
 
   /* ===================== 15. Polynomials and functional equations ===================== */
   PB.addChapter({
-    id: 'math-algebra', subject: 'maths', num: 15, part: 'Olympiad Topics',
+    id: 'math-algebra', subject: 'maths', num: 20, part: 'Olympiad Topics',
     title: 'Polynomials and Functional Equations',
     subtitle: R`The algebra of olympiads. The remainder and factor theorems, Vieta's formulas linking roots and coefficients, symmetric expressions in the roots, and solving equations whose unknown is a function.`,
     big: 'A polynomial is pinned down by its roots, and Vieta’s formulas let you work with the roots without ever finding them. Functional equations turn the usual question round: instead of solving for x, you solve for the whole function, by plugging in clever values.',
@@ -165,7 +165,7 @@ $$\alpha^2 + \beta^2 = s^2 - 2p,\qquad \alpha^3 + \beta^3 = s^3 - 3ps,\qquad \fr
 
   /* ===================== 16. Olympiad geometry ===================== */
   PB.addChapter({
-    id: 'math-geometry', subject: 'maths', num: 16, part: 'Olympiad Topics',
+    id: 'math-geometry', subject: 'maths', num: 21, part: 'Olympiad Topics',
     title: 'Olympiad Geometry',
     subtitle: R`Seeing why. Angle chasing and circle theorems, similar triangles, power of a point and cyclic quadrilaterals, triangle centres, and trigonometry in triangles with the sine and cosine rules.`,
     big: 'Geometry problems are solved by finding hidden equal angles and similar triangles. A few circle theorems, especially "angles in the same segment are equal", do most of the work; the sine and cosine rules turn the rest into algebra.',

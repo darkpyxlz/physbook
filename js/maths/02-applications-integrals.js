@@ -9,7 +9,7 @@
 
   /* ===================== 4. Applications of the derivative ===================== */
   PB.addChapter({
-    id: 'math-applications', subject: 'maths', num: 4, part: 'Calculus',
+    id: 'math-applications', subject: 'maths', num: 5, part: 'Calculus',
     title: 'Using Derivatives',
     subtitle: R`What derivatives are for. Increasing and decreasing functions, maxima and minima, optimisation, curve sketching, related rates, linear approximation, Newton's method and L'Hôpital's rule.`,
     big: 'If you know how fast something changes, you know where it peaks: at a maximum or minimum the slope is zero. That single fact turns "what is the best shape, price or path?" into "solve f′(x) = 0".',
@@ -96,7 +96,7 @@ $$x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}.$$
   /* ===================== 5. The integral ===================== */
   const FN = { x2: [(x) => x * x, 'x²'], sin: [(x) => Math.sin(x), 'sin x'], exp: [(x) => Math.exp(x / 2), 'e^{x/2}'], lin: [(x) => 1 + 0.5 * x, '1 + x/2'] };
   PB.addChapter({
-    id: 'math-integrals', subject: 'maths', num: 5, part: 'Calculus',
+    id: 'math-integrals', subject: 'maths', num: 6, part: 'Calculus',
     title: 'The Integral',
     subtitle: R`Adding up infinitely many tiny pieces. Area as a limit of rectangles, the definite integral, antiderivatives, the fundamental theorem of calculus, and using integrals for area, distance and averages.`,
     big: 'Integration is the reverse of differentiation and also a way of adding things up. Slice an area into thin rectangles, add them, and let the slices shrink: the total is the integral. The fundamental theorem says you can get it from any function whose derivative is the one you started with.',
@@ -177,7 +177,7 @@ $$\int f(x)\,\mathrm dx = F(x) + C.$$
 
   /* ===================== 6. Techniques of integration ===================== */
   PB.addChapter({
-    id: 'math-techniques', subject: 'maths', num: 6, part: 'Calculus',
+    id: 'math-techniques', subject: 'maths', num: 7, part: 'Calculus',
     title: 'Techniques of Integration',
     subtitle: R`Integrating what the table does not list. Substitution, integration by parts, partial fractions, trigonometric integrals, and applications to volumes and arc length.`,
     big: 'Differentiation is mechanical; integration is pattern-spotting. Each technique is a derivative rule run backwards: substitution undoes the chain rule, integration by parts undoes the product rule, and partial fractions break a hard fraction into easy ones.',

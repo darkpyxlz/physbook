@@ -10,6 +10,8 @@
     'math-techniques': ['math-integrals'], 'math-series': ['math-techniques'], 'math-odes': ['math-techniques'], 'math-multivar': ['math-applications', 'math-integrals'],
     'math-complex': ['math-functions'], 'math-proof': ['math-functions'], 'math-numbertheory': ['math-proof'], 'math-combinatorics': ['math-proof'],
     'math-inequalities': ['math-proof'], 'math-algebra': ['math-proof', 'math-complex'], 'math-geometry': ['math-proof'],
+    'math-sequences': ['math-functions'], 'math-vectorcalc': ['math-multivar'], 'math-linear': ['math-functions'], 'math-stats': ['math-integrals', 'math-combinatorics'],
+    'math-recurrences': ['math-combinatorics', 'math-sequences'], 'math-graphs': ['math-proof'], 'math-games': ['math-proof'], 'math-diophantine': ['math-numbertheory'],
     // Physics
     'kinematics': ['toolkit'], 'newton': ['kinematics'], 'energy': ['newton'], 'momentum': ['newton'], 'rotation': ['energy', 'momentum'],
     'gravitation': ['energy'], 'oscillations': ['energy'], 'fluids': ['newton'], 'waves': ['oscillations'], 'thermal': ['energy'],
