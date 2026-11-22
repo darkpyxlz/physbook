@@ -150,7 +150,7 @@
     PB.emit({ type: 'gold', amount: n, kind: kind });
     if (!quiet && kind !== 'gold') PB.emit({ type: 'loot', icon: ICON[kind], text: '+' + n + ' ' + NAME[kind] + (why ? ' · ' + why : '') });
   }
-  PB.rpg = { gold: () => R().gold, gems: () => R().gems, stats: stats, give: give };
+  PB.rpg = { gold: () => R().gold, gems: () => R().gems, keys: () => R().keys, frags: () => R().frags, stats: stats, give: give, hasHero: () => !!R().cls };
   let gymCount = 0;
   PB.on(function (ev) {
     if (ev.type === 'xp' && ev.amount > 0) {
@@ -212,6 +212,17 @@
     PB.checkBadges(); PB.save();
     return got;
   }
+  // A chest granted as a reward (no cost). Returns the items, and announces the best one.
+  PB.rpg.grantChest = function (key) {
+    const c = CHESTS[key], r = R();
+    if (!c) return [];
+    r[c.cost[0]] = (r[c.cost[0]] || 0) + c.cost[1];
+    const got = openChest(key) || [];
+    if (got.length) { const best = got.reduce((a, x) => (x.r > a.r ? x : a)); const bb = isPet(best) ? pet(best.p) : base(best.b); PB.emit({ type: 'loot', icon: bb.icon, text: c.name + ': ' + RAR[best.r].name + ' ' + bb.name }); }
+    return got;
+  };
+  PB.rpg.chestName = (key) => (CHESTS[key] ? CHESTS[key].name : key);
+  PB.rpg.chestIcon = (key) => (CHESTS[key] ? CHESTS[key].icon : '🎁');
   const dayKeyOf = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   function claimSupply() {
     const r = R(), t = PB.today();

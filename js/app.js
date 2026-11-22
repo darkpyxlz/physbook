@@ -99,6 +99,7 @@
     box.append(lvl, st);
     if (gold) box.append(gold);
     box.append(th);
+    if (PB.hudExtras) PB.hudExtras(box);
   }
   PB.renderHUD = function () { renderHUD(); };
 
@@ -106,7 +107,7 @@
     const nav = $('#sidebar');
     nav.innerHTML = '';
     nav.appendChild(h('div', { class: 'rail-group', text: 'Book' }));
-    [['home', 'Dashboard'], ['adapt', 'Adaptive practice'], ['hero', 'Hero & bosses'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
+    [['home', 'Dashboard'], ['adapt', 'Adaptive practice'], ['pass', 'Study Pass'], ['league', 'League'], ['hero', 'Hero & bosses'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['profile', 'Level & badges']].forEach(function (x) {
       nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
     });
     const sub = PB.subject(curSubject());
@@ -463,6 +464,7 @@
       ])
     ]);
     wrap.appendChild(hero);
+    if (PB.homeTop) PB.homeTop(wrap);
 
     wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Subjects' }), h('p', { text: 'Rings show reading plus problems completed.' })]));
     const sg = h('div', { class: 'subj-grid' });
