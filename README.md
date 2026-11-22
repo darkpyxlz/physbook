@@ -11,11 +11,11 @@ Every chapter has four parts:
 
 | Subject | Chapters | Labs | Scored problems | Drill templates | Game |
 |---------|---------:|-----:|----------------:|----------------:|------|
-| Physics | 24 | 48 | 444 | 72 | — |
-| Chemistry | 26 | 52 | 372 | 78 | ChemCorp |
-| Biology | 28 | 56 | 396 | 84 | Cytos |
-| Astronomy | 16 | 32 | 240 | 48 | Firmament |
-| **Total** | **94** | **188** | **1452** | **282** | |
+| Physics | 24 | 48 | 516 | 72 | — |
+| Chemistry | 26 | 52 | 450 | 78 | ChemCorp |
+| Biology | 28 | 56 | 480 | 84 | Cytos |
+| Astronomy | 16 | 32 | 288 | 48 | Firmament |
+| **Total** | **94** | **188** | **1734** | **282** | |
 
 Every chapter has at least two labs. Many second labs use a shared explorer engine (`js/sims-explore.js`), so a chapter can describe a small model (controls, curves, a picture and a readout) as a config instead of new drawing code.
 
@@ -234,7 +234,7 @@ js/games.js           game tabs and progress read from the games' saves
 js/sims-explore.js    the general explorer lab engine and PB.addLabs
 js/prereqs.js         the skill tree: prerequisites, locks, test-outs, #tree
 js/rpg.js             hero, gear, pets, skills, bosses, #hero
-js/extra/*.js         second labs and extra problems for the original chapters (loaded last so problem ids stay stable)
+js/extra/*.js         second labs and two further batches of problems (loaded last so problem ids stay stable)
 games/                copies of ChemCorp, Cytos and Firmament
 js/app.js             routing, views, problem cards, HUD
 js/solver.js          equation board UI (cards, wires, menus, known values)
