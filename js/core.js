@@ -17,7 +17,7 @@
       parts: ['Cells and Molecules', 'Genetics', 'Physiology', 'Evolution and Ecology'],
       game: { id: 'cytos', name: 'Cytos', path: 'games/cytos/index.html', blurb: 'You are a cell: express genes, build organelles, respire, signal, repair DNA and fight viruses.' } },
     { id: 'astronomy', name: 'Astronomy', mark: 'As', blurb: 'The sky, the Solar System, stars, galaxies and the universe, with the observational skills of astronomy olympiads.',
-      parts: ['The Sky', 'The Solar System', 'Stars and Galaxies'],
+      parts: ['The Sky', 'The Solar System', 'The Stars', 'Galaxies and Cosmology'],
       game: { id: 'firmament', name: 'Firmament', path: 'games/firmament/index.html', blurb: 'Run a space corporation on the real night sky and colonise all 88 constellations.' } }
   ];
   PB.subject = function (id) { return PB.SUBJECTS.find(function (s) { return s.id === id; }); };
