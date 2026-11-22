@@ -834,3 +834,48 @@ kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line)
   .battle-top { grid-template-columns: 1fr; }
   .vs { display: none; }
 }
+
+/* ---------- Equipment (v2) ---------- */
+.cur-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.cur-bar .cur { background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; font: 600 13px var(--f-mono); }
+.cur-bar .cur.scrolls { display: flex; gap: 10px; flex-wrap: wrap; border-radius: 12px; }
+.cur-bar .cur.scrolls small { font: 500 12px var(--f-mono); color: var(--ink-2); }
+.gear-tile { position: relative; width: 64px; height: 64px; border-radius: 12px; border: 2px solid var(--rar, var(--line)); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--rar, #888) 35%, var(--surface)), var(--surface)); cursor: pointer; display: grid; place-items: center; padding: 0; color: var(--ink); }
+.gear-tile .gear-ico { font-size: 28px; line-height: 1; }
+.gear-tile .gear-lv { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font: 700 10px var(--f-mono); color: var(--ink); text-shadow: 0 0 3px var(--surface); }
+.gear-tile .gear-eq { position: absolute; top: 2px; right: 4px; font: 800 10px var(--f-mono); color: var(--good); }
+.gear-tile.empty { --rar: var(--line); border-style: dashed; background: var(--surface-2); }
+.gear-tile.empty .gear-ico { color: var(--ink-3); }
+.gear-tile.sel { outline: 3px solid var(--accent); outline-offset: 2px; }
+.gear-tile.can-merge { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rar) 45%, transparent), 0 0 14px color-mix(in srgb, var(--rar) 70%, transparent); animation: mergeglow 1.6s ease-in-out infinite; }
+@keyframes mergeglow { 50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--rar) 30%, transparent), 0 0 4px color-mix(in srgb, var(--rar) 40%, transparent); } }
+.hero-avatar { flex-direction: row !important; gap: 18px !important; }
+.doll-col { display: flex; flex-direction: column; gap: 10px; }
+.power { font: 600 15px var(--f-ui); color: var(--points); margin: 6px 0 2px; }
+.power b { font: 800 22px var(--f-display); }
+.bag-layout { display: grid; grid-template-columns: 1fr 340px; gap: 18px; align-items: start; }
+.bag-grid { display: grid; grid-template-columns: repeat(auto-fill, 64px); gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-height: 120px; }
+.bag-grid.loot { margin-bottom: 18px; }
+.gear-panel { background: var(--surface); border: 2px solid var(--rar, var(--line)); border-radius: 14px; padding: 16px; position: sticky; top: calc(var(--hud-h) + 12px); }
+.gear-panel.muted { border-color: var(--line); color: var(--ink-2); }
+.gear-panel-head { display: flex; gap: 12px; align-items: center; }
+.gear-panel-head b { display: block; font: 700 17px var(--f-display); color: var(--rar); }
+.gear-panel-head small { color: var(--ink-2); }
+.gear-ico.big { font-size: 44px; }
+.gear-passives { list-style: none; padding: 0; margin: 8px 0; font-size: 13.5px; color: var(--ink-3); }
+.gear-passives li { padding: 3px 0; }
+.gear-passives li.on { color: var(--ink); font-weight: 600; }
+.supply-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 10px 0 14px; }
+.supply-day { text-align: center; border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px; background: var(--surface-2); }
+.supply-day small { display: block; color: var(--ink-3); font-size: 11px; }
+.supply-day b { font: 700 14px var(--f-mono); }
+.supply-day.today { border-color: var(--points); background: var(--points-soft); box-shadow: 0 0 0 2px var(--points-soft); }
+.supply-day.done { border-color: var(--good); background: var(--good-soft); }
+.chest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 18px 0; }
+.chest-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.chest-card small { color: var(--ink-2); font-size: 12.5px; }
+.chest-ico { font-size: 38px; }
+.btn.disabled { opacity: .5; pointer-events: none; }
+@media (max-width: 860px) { .bag-layout { grid-template-columns: 1fr; } .gear-panel { position: static; } .supply-row { grid-template-columns: repeat(4, 1fr); } }
+.hero-card { grid-template-columns: 290px 1fr; }
+@media (max-width: 720px) { .hero-card { grid-template-columns: 1fr; } }

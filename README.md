@@ -30,13 +30,22 @@ Chapters unlock Duolingo-style. Each chapter lists its prerequisites in `js/prer
 
 ## Hero and bosses
 
-An RPG layer on top of the XP system (`js/rpg.js`, page `#hero`):
+A Survivor.io-style equipment RPG on top of the XP system (`js/rpg.js`, page `#hero`):
 
-- **Classes**: Physicist (+20% damage), Chemist (coffee heals double), Biologist (+40 HP) or Astronomer (+15% critical hits). Your class's science pays 25% more gold.
-- **Attributes**: Might, Alchemy, Vitality and Insight grow with the points earned in physics, chemistry, biology and astronomy.
-- **Gold**: earned from solved problems, gym drills, quests, sections and labs. Spend it in the **shop** on 12 pieces of gear across four slots (head, body, tool, charm) and on coffee, which heals in battle.
-- **Unit bosses**: every part of every science has a boss (21 in all, from the Dimensional Golem to the Dark Energy Titan). A boss appears once you pass three chapters of its unit. In a fight, each correct answer to a randomised drill from that unit strikes the boss; each wrong answer lets it strike back. First victories pay gold, XP and a title.
-- Five new badges cover bosses, gold and gear.
+- **Classes**: Physicist (+20% attack), Chemist (coffee heals double), Biologist (+25% HP) or Astronomer (+10% crit). Your class's science pays 25% more gold.
+- **Equipment**: six slots (weapon, necklace, gloves for attack; armour, belt, boots for HP), twelve items and six rarities: Common, Good, Better, Excellent, Epic, Legend. Each item has a special ability that unlocks at Excellent and grows at Epic and Legend (double strikes, crits, blocks, dodges, lifesteal, revives, combo damage, bonus loot).
+- **Merge**: three copies of the same item at the same rarity merge into one of the next rarity, keeping the highest level. "Merge all" and "Equip best" do it in one click.
+- **Level up** items with gold and slot-specific design scrolls, up to a cap set by rarity (10 to 60). Salvage spare items for scrolls and gold.
+- **Currencies, all earned by learning**:
+  - ◉ gold from problems, drills, sections and labs;
+  - 💎 gems from quests, badges, level-ups and first boss wins;
+  - 🗝️ keys from the daily challenge, unlocking chapters, level-ups and bosses;
+  - 📜 scrolls from olympiad problems, gym streaks, bosses and the Trials.
+- **Chests**: a Supply Crate (one key) and a Research Grant Chest (gems; an Epic is guaranteed within 30). There is also a 7-day daily supply ladder.
+- **Attributes**: Might, Alchemy, Vitality and Insight grow with the points earned in each science and multiply your damage against that science's bosses.
+- **Unit bosses**: every part of every science has a boss (21 in all). A boss appears once you pass three chapters of its unit; correct answers to drills from that unit strike it, wrong answers let it strike back. Bosses can be re-fought for gold, keys and scrolls.
+- **The Trials**: an endless tower of stronger and stronger monsters, three runs a day, using questions from every open chapter. Every floor pays gold and a scroll, every 5th gems and every 10th a key.
+- Eight badges cover bosses, gear, gold and the Trials. Saves from the first RPG version are migrated: old gear is refunded as gold.
 
 ## Physics
 

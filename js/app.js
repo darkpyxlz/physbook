@@ -95,7 +95,7 @@
     const th = h('button', { class: 'icon-btn hud-theme', 'aria-label': 'Switch light or dark theme', html: isDark() ? SUN : MOON, onclick: function () {
       S().theme = isDark() ? 'light' : 'dark'; PB.save(); applyTheme(); renderHUD(); PB.emit({ type: 'theme' });
     } });
-    const gold = PB.rpg ? h('a', { class: 'hud-gold', href: '#hero', title: 'Gold: spend it in the hero shop', html: '<span class="coin">◉</span>' + PB.rpg.gold() }) : null;
+    const gold = PB.rpg ? h('a', { class: 'hud-gold', href: '#hero', title: 'Gold: spend it in the hero shop', html: '<span class="coin">◉</span>' + PB.rpg.gold() + (PB.rpg.gems ? ' <span class="coin">💎</span>' + PB.rpg.gems() : '') }) : null;
     box.append(lvl, st);
     if (gold) box.append(gold);
     box.append(th);
