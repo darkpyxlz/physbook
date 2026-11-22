@@ -415,9 +415,9 @@
   /* =============== Acid speciation (Chem 11) =============== */
   const ACIDS = { acetic: ['Ethanoic acid', [4.76], 0], carbonic: ['Carbonic acid', [6.35, 10.33], 0], phosphoric: ['Phosphoric acid', [2.15, 7.20, 12.35], 0], ammonium: ['Ammonium ion', [9.25], 1], glycine: ['Glycine (cation form)', [2.34, 9.60], 1], hf: ['Hydrofluoric acid', [3.17], 0] };
   PB.chemAcids = ACIDS;
-  PB.sims.speciation = function (api) {
+  PB.sims.speciation = function (api, params) {
     const cv = api.canvas(0.55);
-    let ac = 'phosphoric';
+    let ac = (params && params.acid) || 'phosphoric';
     api.select({ id: 'a', label: 'Acid', value: ac, options: Object.keys(ACIDS).map((k) => [k, ACIDS[k][0] + ' (pKa ' + ACIDS[k][1].join(', ') + ')']), onChange: (v) => { ac = v; draw(); } });
     const pH = api.slider({ id: 'p', label: 'pH', min: 0, max: 14, step: 0.05, value: 7, onChange: () => draw() });
     const conc = api.slider({ id: 'c', label: 'Concentration (for its own pH)', min: -4, max: 0, step: 0.1, value: -1, format: (v) => Math.pow(10, v).toPrecision(2) + ' mol/L', onChange: () => draw() });
