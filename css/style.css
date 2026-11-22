@@ -879,3 +879,54 @@ kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line)
 @media (max-width: 860px) { .bag-layout { grid-template-columns: 1fr; } .gear-panel { position: static; } .supply-row { grid-template-columns: repeat(4, 1fr); } }
 .hero-card { grid-template-columns: 290px 1fr; }
 @media (max-width: 720px) { .hero-card { grid-template-columns: 1fr; } }
+/* RPG v3: card art, pets, skills */
+.gcard { --rc: #9aa3b5; --rd: #5d6578; position: relative; width: 70px; height: 84px; padding: 0; cursor: pointer; border-radius: 12px; border: 2px solid color-mix(in srgb, var(--rc) 85%, #fff); background: linear-gradient(160deg, color-mix(in srgb, var(--rc) 70%, #fff) 0%, var(--rc) 38%, var(--rd) 100%); box-shadow: inset 0 0 0 2px rgba(0,0,0,.28), inset 0 2px 0 3px rgba(255,255,255,.22), 0 3px 8px rgba(0,0,0,.25); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; transition: transform .12s; }
+.gcard:hover { transform: translateY(-2px); }
+.gcard::before { content: ''; position: absolute; inset: 5px; border-radius: 8px; border: 1px solid rgba(255,255,255,.35); background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.42), rgba(255,255,255,0) 58%); pointer-events: none; }
+.gcard-art { position: relative; font-size: 34px; line-height: 1; margin-top: -6px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
+.gcard-stars { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 9.5px; letter-spacing: -.5px; color: #ffe066; text-shadow: 0 0 2px #000, 0 1px 1px #000; white-space: nowrap; overflow: hidden; }
+.gcard-slot { position: absolute; top: 3px; left: 4px; font-size: 11px; opacity: .9; filter: drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
+.gcard-eq { position: absolute; top: 3px; right: 3px; font: 800 8.5px var(--f-mono); background: #16a34a; color: #fff; border-radius: 5px; padding: 1px 4px; box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.gcard-shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, transparent 60%); background-size: 250% 100%; animation: gshine 2.6s linear infinite; pointer-events: none; }
+@keyframes gshine { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+.gcard.r5 { border-color: transparent; background: linear-gradient(160deg, #ff9a9a 0%, var(--rc) 38%, var(--rd) 100%) padding-box, conic-gradient(from var(--ga, 0deg), #ff4d4d, #ffd84d, #ff4dd2, #ff4d4d) border-box; animation: gspin 3s linear infinite; }
+@property --ga { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes gspin { to { --ga: 360deg; } }
+.gcard.r4 { box-shadow: inset 0 0 0 2px rgba(0,0,0,.28), inset 0 2px 0 3px rgba(255,255,255,.22), 0 0 12px color-mix(in srgb, var(--rc) 70%, transparent); }
+.gcard.empty { background: var(--surface-2); border: 2px dashed var(--line); box-shadow: none; color: var(--ink-3); }
+.gcard.empty::before { display: none; }
+.gcard.empty .gcard-art { opacity: .45; filter: grayscale(1); font-size: 28px; }
+.gcard.empty .gcard-stars { color: var(--ink-3); text-shadow: none; font: 600 9.5px var(--f-ui); letter-spacing: 0; }
+.gcard.sel { outline: 3px solid var(--accent); outline-offset: 2px; }
+.gcard.can-merge { animation: gmerge 1.4s ease-in-out infinite; }
+.gcard.r5.can-merge { animation: gspin 3s linear infinite; }
+@keyframes gmerge { 50% { box-shadow: inset 0 0 0 2px rgba(0,0,0,.28), 0 0 0 3px color-mix(in srgb, var(--rc) 60%, transparent), 0 0 16px var(--rc); } }
+.gcard.big { width: 96px; height: 116px; cursor: default; }
+.gcard.big .gcard-art { font-size: 50px; }
+.gcard.big .gcard-stars { font-size: 13px; bottom: 6px; }
+.gcard.pet-slot { width: 84px; height: 100px; }
+.gcard.pet-slot .gcard-art { font-size: 42px; }
+.gcard.pop { animation: gpop .45s ease-out both; }
+.gcard.r5.pop { animation: gpop .45s ease-out both, gspin 3s linear infinite; }
+@keyframes gpop { from { transform: scale(.4) rotate(-8deg); opacity: 0; } 70% { transform: scale(1.12); } to { transform: none; opacity: 1; } }
+.bag-grid { grid-template-columns: repeat(auto-fill, 70px); }
+.doll-mid { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.class-ico.big { font-size: 54px; }
+.gear-panel-head .gcard { flex: none; }
+.chest-card.pet { background: linear-gradient(160deg, color-mix(in srgb, var(--good) 10%, var(--surface)), var(--surface)); }
+.skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin: 10px 0; }
+.skill-card { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.skill-card small { color: var(--ink-2); font-size: 12.5px; }
+.skill-ico { font-size: 30px; }
+.skill-card.pickable { cursor: pointer; border: 2px solid var(--accent); transition: transform .12s, box-shadow .12s; }
+.skill-card.pickable:hover { transform: translateY(-3px); box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 35%, transparent); }
+.skill-card.evo { border-color: #ffb020; background: linear-gradient(160deg, rgba(255,176,32,.18), var(--surface)); }
+.skill-pick { margin: 14px 0; padding: 14px; border-radius: 14px; background: var(--surface-2); animation: gpop .35s ease-out both; }
+.skill-pick h3 { margin: 0 0 6px; }
+.skill-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0 0; }
+.skill-xp { font: 600 12px var(--f-mono); color: var(--ink-3); margin-right: 6px; }
+.skill-chip { font: 700 12.5px var(--f-mono); padding: 3px 8px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); }
+.skill-chip.evo { border-color: #ffb020; background: rgba(255,176,32,.18); }
+.fighter-ico { position: relative; }
+.fighter-pet { position: absolute; right: -16px; bottom: -4px; font-size: .55em; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+@media (max-width: 560px) { .hud-gold { display: none; } .gcard { width: 62px; height: 76px; } .gcard-art { font-size: 30px; } .bag-grid { grid-template-columns: repeat(auto-fill, 62px); padding: 10px; } .hero-avatar { gap: 10px !important; } }
