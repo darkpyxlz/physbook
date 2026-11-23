@@ -30,6 +30,9 @@ The Learn tab is built to keep the learning curve gentle (`js/learn.js`, `js/big
 - **Check your understanding**: each chapter's scored concept checks appear inline, right after the section they test (matched by the words they share). Solving them there counts towards the chapter.
 - **Figures**: every chapter has at least one interactive figure inside the text (a slider-driven plot or diagram), 117 in all.
 - Maths chapters also carry authored **quick checks** in the middle of each section.
+- **In plain words**: every one of the 495 sections opens with a one- or two-sentence summary in everyday language, so you know where the section is going before the details start (`js/plain.js`, `js/plain/*.js`).
+- **Glossary**: 328 key terms get a dotted underline the first time they appear in a section. Hover, tap or tab to one to see a plain definition without leaving the page. Words are matched to the subject (so "induction" means one thing in physics and another in maths), text inside equations is never touched, and the whole list is searchable at `#glossary`, where the summaries and underlines can also be switched off.
+- **Say it back**: each section ends with a self-explanation prompt. You write the idea in a sentence or two, then compare it with the plain-words summary (+3 XP the first time).
 
 ## Adaptive practice
 
@@ -40,6 +43,19 @@ The Learn tab is built to keep the learning curve gentle (`js/learn.js`, `js/big
 - After a mistake it switches to an easier **stepping stone** and offers a link back to the section that explains the idea. After three right in a row it serves a **stretch** question.
 - Chapters where you slipped come back for **spaced review** after 10 minutes, then 1, 3, 7, 16 and 35 days. The dashboard shows how many reviews are due.
 - Across the whole book it weights weaker chapters more heavily, and always does due reviews first.
+- Practice comes in **sessions of 10 questions**, with a progress bar and an end card (score, XP, best run, time). A perfect session pays 20 XP and a Double XP boost.
+
+## Guided solving
+
+`js/guide.js`. Every problem card has a **Guide me step by step** button that turns the problem into a short tutoring dialogue, following Pólya's four phases (understand, plan, carry out, look back). Each step asks you a question before moving on:
+
+- **Understand**: what unit will the answer have? Which option can you rule out straight away?
+- **Estimate**: roughly how big should the answer be (an order-of-magnitude range)?
+- **Plan**: what idea or law connects what you know to what you want? (Built from the problem's hints, with a "do you see why?" self-explanation check.)
+- **Carry out**: intermediate numbers to calculate, each checked separately, with "Show me this step" if you are stuck.
+- **Look back**: after the final answer, a link to more practice on the same idea.
+
+The first core problem of every chapter has hand-written steps (`js/steps/*.js`, via `PB.addSteps`); every other problem gets automatic steps from its units, options and hints. Each correct step pays 2 XP, and a guided solve is worth 70% of the points. Scaffolding fades as you improve: once your mastery of a chapter reaches 65%, the guide skips the warm-up steps.
 
 ## Maths
 
@@ -66,6 +82,20 @@ Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton'
 - **Chapter rewards**: each chapter star pays out (a key and gold, then gems and fragments, then a chest for the third), passing a chapter pays a key, and reaching 50% and 80% mastery pays gems.
 - **Today's plan** on the dashboard lists the next best actions with their payoff: the next section to read, reviews due, the ×2 daily challenge, unclaimed pass rewards, or spending your loot.
 - **Feedback**: a reward window with confetti for every milestone, a floating "+XP" on each solved problem, level-up celebrations, and damage numbers and hit shakes in fights.
+
+### Gamification v2
+
+`js/loop2.js`, based on a review of how Duolingo, Khan Academy and Brilliant use game elements and on the research behind them (see [docs/GAMIFICATION.md](docs/GAMIFICATION.md)). Rewards are tied to learning behaviour (accuracy, mastery, explaining, coming back), not just time spent.
+
+- **Combo**: each first-try correct answer in a row (without hints or the guide) adds bonus XP, up to +10 per answer.
+- **Double XP boosts**: earned by finishing all three daily quests, perfect sessions, Study Pass tiers and top league places. You choose when to start one (15 minutes); it shows as a ⚡2× chip in the header.
+- **Mastery levels** (as on Khan Academy): every chapter is Not started, Attempted, Familiar, Proficient or Mastered, shown on its page and on the chapter cards, and each subject page shows its overall course mastery.
+- **Mastery challenge** (`#challenge-<chapter>`): five fresh questions with no hints. Five out of five earns the chapter's crown, Mastered level, 100 gems and a key.
+- **Monthly challenge**: earn 1500 XP in a calendar month for 150 gems, a chest and that month's badge.
+- **Achievements with tiers** (I to V) for solving, reading, guided steps, labs, crowns, streaks and perfect sessions, plus **personal bests** (best day, longest combo, longest streak, highest league).
+- **Gentle nudges**: a toast when you are 70% of the way to your daily goal, and an evening banner if your streak is at risk.
+- **Welcome**: a new learner picks a daily goal and a starting subject, and gets a 10 XP head start.
+- **League opt-out**: rankings motivate some people and stress others, so the league can be switched off on its page.
 
 ## Skill tree
 
@@ -284,6 +314,11 @@ js/learn.js           Try-it quizzes, inline concept checks, refreshers, PB.addF
 js/figures.js         interactive figures inside the text of the science chapters
 js/adaptive.js        mastery model, adaptive practice and spaced review, #adapt
 js/loop.js            daily goal, streaks and freezes, Study Pass, weekly league, chapter rewards, reward window, #pass, #league
+js/guide.js            guided step-by-step solving (Pólya phases, auto and authored steps)
+js/steps/*.js          hand-written guided steps for the first core problem of every chapter
+js/loop2.js            combos, Double XP boosts, mastery levels and challenges, monthly challenge, achievements, personal bests, nudges, welcome
+js/plain.js            plain-words summaries, glossary tooltips, say-it-back prompts, #glossary
+js/plain/*.js          the summaries (one per section) and the glossary entries
 js/games.js           game tabs and progress read from the games' saves
 js/sims-explore.js    the general explorer lab engine and PB.addLabs
 js/prereqs.js         the skill tree: prerequisites, locks, test-outs, #tree
@@ -311,3 +346,5 @@ Each chapter file calls `PB.addChapter({...})` with a `subject` (`physics` by de
 `type` can be `num` (numerical, graded within `tol`), `mcq` (`answer` is the option index) or `multi` (`answer` is an array of indices).
 
 A chapter can also carry `big` (its plain-language opening), `figures` (interactive figures in the text: `{ s: sectionIndex, title, caption, params }`, where `params` is an explorer config) and, per section, `quizzes` (quick checks: `{ type: 'num' | 'mcq', q, answer, options, unit, tol, hints, solution }`). An explorer config can declare draggable handles with `drag: [{ plot: 0, get: (v) => [x, y], set: (v, x, y) => { ... } }]` (data coordinates of a plot) or `{ pic: true, ... }` (canvas pixels of the picture). Put `<div data-quiz="0"></div>` or `<div data-fig="0"></div>` in a section's HTML to place a quiz or figure at that spot; otherwise they go at the end of the section. Worked examples written as `<details class="example">` become Try-it quizzes when `PB.EXQ['chapter:section:index']` gives their answer.
+
+To add guided steps to a problem, call `PB.addSteps('chapter-n', [{ phase: 'understand' | 'plan' | 'do' | 'check', type: 'num' | 'mcq' | 'reveal', q, answer, options, unit, tol, explain }])`. Plain-words summaries are a list with one string per section: `PB.addPlain('chapter', [...])`. Glossary entries are `PB.addGlossary({ 'term|alias': ['definition', 'physics,chemistry'] })` (leave the subject list empty for all subjects).
