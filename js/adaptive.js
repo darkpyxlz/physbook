@@ -9,6 +9,7 @@
   const PB = window.PB, h = PB.h, S = function () { return PB.S; };
   const B = { concept: -1, core: 0.4, olympiad: 1.6, drill: 0, example: -0.4, check: -0.8 };
   const INTERVALS = [1, 3, 7, 16, 35];
+  const SESSION = 10;
   const DAY = 86400000;
   const sig = (x) => 1 / (1 + Math.exp(-x));
   function M() { if (!S().mastery) S().mastery = {}; return S().mastery; }
@@ -94,16 +95,35 @@
     wrap.append(stats, stage);
     function drawStats() {
       stats.innerHTML = '';
+      const sp = Math.min(1, sess.answered / SESSION);
+      stats.appendChild(h('div', { class: 'session-bar', style: 'grid-column:1/-1' }, [h('span', { class: 'eyebrow', text: 'Session ' + Math.min(sess.answered, SESSION) + ' / ' + SESSION }), h('span', { class: 'xpbar lg' + (sp >= 1 ? ' full' : ''), html: '<span style="width:' + Math.round(sp * 100) + '%"></span>' }), sess.streak >= 2 ? h('span', { class: 'combo-chip', text: '🔥 ' + sess.streak + ' in a row' }) : null]));
       [[sess.answered, 'answered'], [sess.answered ? Math.round(100 * sess.correct / sess.answered) + '%' : '–', 'correct'], [sess.streak, 'streak'], [PB.reviewsDue().length, 'reviews due']].forEach(function (x) { stats.appendChild(h('div', { class: 'stat' }, [h('b', { text: String(x[0]) }), h('span', { text: x[1] })])); });
     }
     function outcome(ok, item) {
       sess.answered++;
-      if (ok) { sess.correct++; sess.streak++; sess.mode = sess.streak >= 3 ? 'stretch' : 'normal'; }
+      if (ok) { sess.correct++; sess.streak++; sess.best = Math.max(sess.best || 0, sess.streak); sess.mode = sess.streak >= 3 ? 'stretch' : 'normal'; }
       else { sess.streak = 0; sess.mode = 'step'; }
       sess.last = item.key;
       drawStats();
     }
+    // A session is 10 questions, ending with a summary screen (accuracy, XP, best run, time).
+    function summary() {
+      const perfect = sess.correct >= SESSION, mins = Math.max(1, Math.round((Date.now() - sess.t0) / 60000));
+      if (perfect) PB.addXP(20, 'Perfect session');
+      const xp = PB.S.xp - sess.xp0;
+      PB.emit({ type: 'session', perfect: perfect, correct: sess.correct, answered: sess.answered, xp: xp });
+      stage.innerHTML = '';
+      stage.appendChild(h('section', { class: 'session-end' + (perfect ? ' perfect' : '') }, [
+        h('div', { class: 'session-ico', text: perfect ? '🏆' : sess.correct >= 7 ? '🎉' : '💪' }),
+        h('h2', { text: perfect ? 'Perfect session!' : sess.correct >= 7 ? 'Great session!' : 'Session complete' }),
+        h('div', { class: 'stat-row' }, [[sess.correct + '/' + SESSION, 'correct'], ['+' + xp, 'XP earned'], [String(sess.best || 0), 'best run'], [mins + ' min', 'time']].map((x) => h('div', { class: 'stat' }, [h('b', { text: x[0] }), h('span', { text: x[1] })]))),
+        h('p', { text: perfect ? 'Ten in a row: +20 XP and a Double XP boost to use when you like.' : 'Every slip has been queued for spaced review, so the next session will revisit it.' }),
+        h('div', { class: 'hero-cta' }, [h('button', { class: 'btn primary', type: 'button', text: 'Another session', onclick: () => { sess.answered = 0; sess.correct = 0; sess.streak = 0; sess.best = 0; sess.t0 = Date.now(); sess.xp0 = PB.S.xp; drawStats(); next(); } }), h('a', { class: 'btn', href: '#home', text: 'Back to the dashboard' })])
+      ]));
+      if (PB.celebrate) PB.celebrate(perfect ? 140 : 60);
+    }
     function next() {
+      if (sess.answered >= SESSION) { summary(); return; }
       const ch = pickChapter();
       if (!ch) { stage.innerHTML = ''; stage.appendChild(h('p', { class: 'empty', text: 'Read a section or try a problem first, then come back.' })); return; }
       let item = pickItem(ch);
@@ -181,7 +201,7 @@
     }
     wrap.appendChild(over);
     PB.setView([wrap], 'adapt');
-    sess.mode = 'normal'; sess.streak = 0; sess.answered = 0; sess.correct = 0;
+    sess.mode = 'normal'; sess.streak = 0; sess.answered = 0; sess.correct = 0; sess.best = 0; sess.t0 = Date.now(); sess.xp0 = PB.S.xp;
     drawStats(); next(); drawOver();
     overHook = function () { if (over.isConnected) drawOver(); };
     window.scrollTo(0, 0);

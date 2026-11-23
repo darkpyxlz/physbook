@@ -139,13 +139,14 @@
   /* ---------- Toasts ---------- */
   function toast(html, cls) {
     const t = h('div', { class: 'toast ' + (cls || ''), html: html });
-    $('#toasts').appendChild(t);
+    const box = $('#toasts'); box.appendChild(t);
+    while (box.children.length > 6) box.firstChild.remove();
     setTimeout(function () { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; }, 2600);
     setTimeout(function () { t.remove(); }, 3100);
   }
   PB.on(function (ev) {
-    if (ev.type === 'xp' && ev.amount > 0) toast('<span class="tx">+' + ev.amount + ' XP</span> ' + ev.reason);
-    if (ev.type === 'levelup') toast('<span class="tx">LV ' + ev.level + '</span> You are now a ' + ev.title, 'badge-t');
+    if (ev.type === 'xp' && ev.amount > 0 && ev.reason !== 'XP boost') { const dbl = PB.boostActive && PB.boostActive(); toast('<span class="tx">+' + (dbl ? 2 * ev.amount : ev.amount) + ' XP</span> ' + ev.reason + (dbl ? ' <span class="tx">⚡2×</span>' : '')); }
+    if (ev.type === 'levelup') toast('<span class="tx">LV ' + ev.level + '</span> You are now ' + (/^[AEIOU]/i.test(ev.title) ? 'an ' : 'a ') + ev.title, 'badge-t');
     if (ev.type === 'quest') toast('<span class="tx">Quest</span> ' + ev.quest.text + ' <span class="tx">+' + ev.quest.xp + ' XP</span>', 'badge-t');
     if (ev.type === 'badge') toast('<span class="tx">Badge</span> ' + ev.badge.name + ' <span class="tx">+25 XP</span>', 'badge-t');
     if (ev.type === 'unlock') toast('<span class="tx">Unlocked</span> ' + PB.subject(ev.chapter.subject).name + ' · ' + ev.chapter.title, 'badge-t');
@@ -416,13 +417,15 @@
     chs.forEach(function (c) {
       const st = PB.chapterStats(c), open = !PB.isUnlocked || PB.isUnlocked(c), passed = PB.isPassed && PB.isPassed(c);
       const miss = open ? [] : PB.missingPrereqs(c);
-      grid.appendChild(h('a', { class: 'ch-card' + (open ? '' : ' locked') + (passed ? ' passed' : ''), href: '#ch-' + c.id }, [
+      const card = h('a', { class: 'ch-card' + (open ? '' : ' locked') + (passed ? ' passed' : ''), href: '#ch-' + c.id }, [
         h('div', { class: 'num', text: 'Chapter ' + c.num + (passed ? ' · passed ✓' : '') }),
         open ? ring(st.progress, 42) : h('span', { class: 'lock-ring', text: '🔒' }),
         h('h3', { text: c.title }),
         open ? h('div', { class: 'meta' }, [stars(st.stars), h('span', { text: st.solved + '/' + st.total + ' solved' }), h('span', { text: st.earned + ' pts' })])
           : h('div', { class: 'meta' }, [h('span', { text: 'Needs: ' + miss.map(function (m) { return (m.subject !== c.subject ? PB.subject(m.subject).name + ' · ' : '') + m.title; }).join(', ') })])
-      ]));
+      ]);
+      if (open && PB.cardBadge) PB.cardBadge(c, card);
+      grid.appendChild(card);
     });
     return grid;
   }
@@ -521,6 +524,7 @@
       ]),
       ring(st.progress, 64)
     ]));
+    if (PB.subjectHeadExtras) PB.subjectHeadExtras(sid, wrap);
     if (sub.game && PB.gameCard) wrap.appendChild(PB.gameCard(sub));
     if (!st.chapters) wrap.appendChild(h('p', { class: 'empty', text: 'Chapters for this subject are on their way.' }));
     sub.parts.forEach(function (part) {

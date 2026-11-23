@@ -4,8 +4,8 @@
 (function () {
   'use strict';
   const PB = window.PB, h = PB.h, S = function () { return PB.S; };
-  const ICON = { gold: '◉', gems: '💎', keys: '🗝️', frags: '🧩', potions: '☕', xp: '✦' };
-  const NAME = { gold: 'gold', gems: 'gems', keys: 'keys', frags: 'egg fragments', potions: 'coffee', xp: 'XP' };
+  const ICON = { gold: '◉', gems: '💎', keys: '🗝️', frags: '🧩', potions: '☕', xp: '✦', boost: '⚡' };
+  const NAME = { gold: 'gold', gems: 'gems', keys: 'keys', frags: 'egg fragments', potions: 'coffee', xp: 'XP', boost: 'Double XP boost' };
   const DAY = 86400000;
   function L() {
     const s = S();
@@ -23,6 +23,7 @@
     rewards.forEach((r) => {
       if (r[0] === 'xp') PB.addXP(r[1], why);
       else if (r[0] === 'chest') { if (PB.rpg && PB.rpg.grantChest) PB.rpg.grantChest(r[1]); }
+      else if (r[0] === 'boost') { if (PB.grantBoost) PB.grantBoost(r[1], why); }
       else if (r[0] === 'potions') { if (S().rpg) { S().rpg.potions = (S().rpg.potions || 0) + r[1]; PB.save(); } }
       else if (PB.rpg) PB.rpg.give(r[0], r[1], why, true);
     });
@@ -123,7 +124,7 @@
   function tierReward(t) {
     if (t % 10 === 0) return [['chest', t === 40 ? 'premium10' : 'premium'], ['gems', 100]];
     if (t % 5 === 0) return [['chest', 'goldegg']];
-    return [[['gold', 150 + 10 * t]], [['keys', 1]], [['frags', 4]], [['gems', 40]], [['potions', 2]], [['gold', 250 + 10 * t], ['keys', 1]], [['frags', 6]], [['gems', 60]]][t % 8];
+    return [[['gold', 150 + 10 * t]], [['keys', 1]], [['frags', 4]], [['gems', 40]], [['boost', 1]], [['gold', 250 + 10 * t], ['keys', 1]], [['frags', 6]], [['gems', 60]]][t % 8];
   }
   function passState() { const l = L(); if (l.pass.season !== season()) { l.pass = { season: season(), claimed: {} }; } const xp = seasonXP(); return { xp: xp, tier: Math.min(TIERS, Math.floor(xp / TIER_XP)), claimed: l.pass.claimed }; }
   PB.passState = passState;
@@ -178,6 +179,7 @@
     const l = L(), wk = weekKey();
     if (!l.league.week) { l.league.week = wk; PB.save(); return; }
     if (l.league.week === wk) return;
+    if (PB.leagueHidden && PB.leagueHidden()) { l.league.week = wk; PB.save(); return; }
     const prevStart = new Date(l.league.week + 'T00:00:00'), my = weekXP(prevStart);
     const tier = l.league.tier;
     l.league.week = wk;
@@ -187,7 +189,7 @@
     if (rank <= 5 && tier < TIERN.length - 1) { nt = tier + 1; title = 'Promoted to the ' + TIERN[nt][0] + ' league!'; }
     else if (rank > 10 && tier > 0) { nt = tier - 1; title = 'Down to the ' + TIERN[nt][0] + ' league'; }
     else title = 'You stay in the ' + TIERN[tier][0] + ' league';
-    if (rank === 1) rw = [['gems', 150 + 30 * tier], ['keys', 2]]; else if (rank === 2) rw = [['gems', 100 + 20 * tier], ['keys', 1]]; else if (rank === 3) rw = [['gems', 60 + 15 * tier]]; else if (rank <= 5) rw = [['gold', 200]];
+    if (rank === 1) rw = [['gems', 150 + 30 * tier], ['keys', 2], ['boost', 1]]; else if (rank === 2) rw = [['gems', 100 + 20 * tier], ['keys', 1], ['boost', 1]]; else if (rank === 3) rw = [['gems', 60 + 15 * tier]]; else if (rank <= 5) rw = [['gold', 200]];
     l.league.tier = nt; l.league.best = Math.max(l.league.best || 0, nt);
     if (rw.length) pay(rw, 'league');
     PB.save();
@@ -232,7 +234,7 @@
       h('div', {}, [h('div', { class: 'eyebrow', text: 'Daily goal' }), h('h3', { text: g.done ? 'Done for today! 🎉' : (g.goal - g.xp) + ' XP to go' }), h('p', { html: '<span class="today-flame">🔥 ' + st + '</span> day streak' + (L().freezes ? ' · 🧊 ' + L().freezes + ' freeze' + (L().freezes > 1 ? 's' : '') : '') }), h('small', { text: 'Reward: ' + goalReward(g.goal).map((x) => ICON[x[0]] + x[1]).join('  ') })])
     ]));
     sec.appendChild(h('a', { class: 'today-card pass', href: '#pass' }, [h('div', { class: 'eyebrow', text: 'Study Pass · ' + new Date().toLocaleString('en-GB', { month: 'long' }) }), h('h3', { text: 'Tier ' + ps.tier + ' / ' + TIERS }), h('div', { class: 'xpbar lg', html: '<span style="width:' + Math.round(100 * (ps.tier >= TIERS ? 1 : (ps.xp % TIER_XP) / TIER_XP)) + '%"></span>' }), h('small', { text: unclaimed ? unclaimed + ' reward' + (unclaimed > 1 ? 's' : '') + ' to claim!' : (TIER_XP - ps.xp % TIER_XP) + ' XP to the next tier' }), unclaimed ? h('span', { class: 'claim-dot', text: unclaimed }) : null]));
-    sec.appendChild(h('a', { class: 'today-card league', href: '#league' }, [h('div', { class: 'eyebrow', text: TIERN[lg.tier][1] + ' ' + TIERN[lg.tier][0] + ' league' }), h('h3', { text: '#' + lg.rank + ' of 15' }), h('small', { text: (lg.rank <= 5 ? 'In the promotion zone' : lg.rank > 10 ? 'In the danger zone' : 'Safe') + ' · ends in ' + fmtLeft(lg.endsIn) })]));
+    if (!(PB.leagueHidden && PB.leagueHidden())) sec.appendChild(h('a', { class: 'today-card league', href: '#league' }, [h('div', { class: 'eyebrow', text: TIERN[lg.tier][1] + ' ' + TIERN[lg.tier][0] + ' league' }), h('h3', { text: '#' + lg.rank + ' of 15' }), h('small', { text: (lg.rank <= 5 ? 'In the promotion zone' : lg.rank > 10 ? 'In the danger zone' : 'Safe') + ' · ends in ' + fmtLeft(lg.endsIn) })]));
     wrap.appendChild(sec);
     // Today's plan: the next best actions, each with its payoff.
     const plan = [];
@@ -304,6 +306,8 @@
     });
     wrap.appendChild(tb);
     wrap.appendChild(h('p', { class: 'input-hint', text: 'Best league reached: ' + TIERN[l.league.best || lg.tier][0] + '.' }));
+    const hid = PB.leagueHidden && PB.leagueHidden();
+    wrap.appendChild(h('div', { class: 'lock-box' }, [h('h2', { text: 'Prefer to learn without a leaderboard?' }), h('p', { text: 'Some people find rankings motivating and others find them stressful. You can switch the league off: it disappears from the dashboard and weekly results stop. Everything else stays.' }), h('button', { class: 'btn', type: 'button', text: hid ? 'Turn the league back on' : 'Switch the league off', onclick: () => { PB.setLeagueHidden(!hid); viewLeague(); } })]));
     PB.setView([wrap], 'league');
     window.scrollTo(0, 0);
   }
