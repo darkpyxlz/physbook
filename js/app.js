@@ -194,7 +194,8 @@
     const fb = h('div');
     const hintBox = h('div');
     const solBox = h('div');
-    body.append(actions, fb, hintBox, solBox);
+    const guideBox = h('div', { class: 'guide-box' });
+    body.append(actions, fb, guideBox, hintBox, solBox);
 
     function locked() { return !!(S().solved[p.id] || S().revealed[p.id]); }
     function submit() {
@@ -242,6 +243,7 @@
         actions.appendChild(h('button', { class: 'btn primary', type: 'button', text: 'Submit', onclick: submit }));
         const used = S().hints[p.id] || 0, total = (p.hints || []).length;
         if (used < total) actions.appendChild(h('button', { class: 'btn', type: 'button', text: 'Hint ' + (used + 1) + ' of ' + total + ' (−25%)', onclick: function () { PB.useHint(p); update(); if (opts.onChange) opts.onChange(); } }));
+        if (PB.openGuide && !guideBox.childElementCount) actions.appendChild(h('button', { class: 'btn guide-btn', type: 'button', title: 'Walk through the problem one question at a time (worth up to 70% of the points)', text: '🧭 Guide me step by step', onclick: function () { PB.openGuide(p, guideBox, function () { update(); if (opts.onChange) opts.onChange(); }); update(); } }));
         actions.appendChild(h('button', { class: 'btn ghost warn', type: 'button', text: 'Show solution', onclick: function () { confirming = true; update(); } }));
         actions.appendChild(h('span', { class: 'avail', text: 'Worth ' + PB.available(p) + ' of ' + p.points * (PB.isDaily(p) ? 2 : 1) + ' points now' }));
       }

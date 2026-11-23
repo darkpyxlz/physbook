@@ -50,6 +50,13 @@
       ch.problems.push(p);
     });
   };
+  // Authored guided steps for a problem (see js/guide.js).
+  PB.addSteps = function (pid, steps) {
+    const ch = PB.chapter(pid.replace(/-\d+$/, ''));
+    const p = ch && ch.problems.find(function (q) { return q.id === pid; });
+    if (!p) { console.warn('addSteps: no problem ' + pid); return; }
+    p.steps = steps;
+  };
   PB.chapter = function (id) { return PB.chapters.find(function (c) { return c.id === id; }); };
   PB.allProblems = function () { return PB.chapters.reduce(function (a, c) { return a.concat(c.problems); }, []); };
   PB.problem = function (pid) { return PB.allProblems().find(function (p) { return p.id === pid; }); };

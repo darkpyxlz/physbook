@@ -1100,3 +1100,24 @@ kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line)
 .subj-card { transition: transform .15s, box-shadow .15s; }
 .subj-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -18px rgba(20,40,90,.5); }
 .subj-head { position: relative; overflow: hidden; border-radius: 18px; padding: 18px 20px; background: radial-gradient(120% 160% at 100% 0%, color-mix(in srgb, var(--subj) 20%, transparent), transparent 60%), var(--surface); border: 1px solid color-mix(in srgb, var(--subj) 25%, var(--line)); }
+/* ---------- Round 6: guided solving ---------- */
+.btn.guide-btn { border-color: color-mix(in srgb, var(--lvl-concept) 50%, var(--line)); color: var(--lvl-concept); font-weight: 700; }
+.guide { margin: 12px 0; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--lvl-concept) 35%, var(--line)); background: color-mix(in srgb, var(--lvl-concept) 5%, var(--surface)); padding: 12px 14px; font-family: var(--f-ui); }
+.guide-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.guide-head small { flex-basis: 100%; color: var(--ink-2); }
+.guide-ico { font-size: 18px; }
+.guide-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: gs; }
+.guide-step { position: relative; padding: 10px 12px 10px 44px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); animation: gpop .3s ease-out both; }
+.guide-step::before { counter-increment: gs; content: counter(gs); position: absolute; left: 10px; top: 10px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font: 800 12px var(--f-mono); background: var(--surface-2); border: 1px solid var(--line); }
+.guide-step.ok::before { content: '✓'; background: var(--good); color: #fff; border-color: var(--good); }
+.guide-step.shown::before { background: var(--points-soft); border-color: var(--points); }
+.guide-step.answer::before { content: '🎯'; background: transparent; border: 0; }
+.guide-step.back::before { content: '🔁'; background: transparent; border: 0; }
+.gs-phase { font: 800 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--lvl-concept); margin-bottom: 4px; }
+.gs-q { font: 400 16px/1.5 var(--f-body); }
+.gs-prompt { margin-top: 6px; font-size: 13.5px; color: var(--ink-2); font-style: italic; }
+.gs-act { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.gs-fb .feedback { margin-top: 8px; }
+.guide-step .num-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.guide-step .num-row input { max-width: 200px; }
+.guide-step .opts { margin-top: 8px; }
