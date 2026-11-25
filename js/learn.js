@@ -236,7 +236,7 @@
         grid.appendChild(h('div', { class: 'refresher-card subj-' + c.subject }, [
           h('a', { href: '#ch-' + c.id, text: PB.subject(c.subject).name + ' · ' + c.title }),
           (c.big || (PB.BIG || {})[c.id]) ? h('p', { html: c.big || PB.BIG[c.id] }) : null,
-          fs.length ? h('div', { class: 'formula-list mini' }, fs.map(function (f) { return h('div', { class: 'formula' }, [h('span', { html: f[0] }), h('div', { class: 'm', html: '$' + f[1] + '$' })]); })) : null,
+          fs.length ? h('div', { class: 'formula-list mini' }, fs.map(function (f) { return h('div', { class: 'formula' }, [h('span', { html: f[0] }), f[2] ? h('pre', { class: 'm code-m', 'data-lang': f[2], text: f[1] }) : h('div', { class: 'm', html: '$' + f[1] + '$' })]); })) : null,
           h('small', { text: PB.isPassed && PB.isPassed(c) ? '✓ passed' : 'not passed yet' })
         ]));
       });
