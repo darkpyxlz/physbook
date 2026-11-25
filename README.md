@@ -1,23 +1,23 @@
 # Scibook
 
-An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving), and for anyone learning to program, from the command line to competitive programming. Instead of separate subjects it is one tech tree of 139 modules in 32 small books, with maths at the centre, physics branching out of maths, chemistry and astronomy out of physics, biology out of chemistry, and computing on its own branch from the centre. Three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
+An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving), and for anyone learning to program, from the command line to competitive programming. Instead of separate subjects it is one tech tree of 140 modules in 32 small books, with maths at the centre, physics branching out of maths, chemistry and astronomy out of physics, biology out of chemistry, and computing on its own branch from the centre. Three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
 
 Every module (chapter) has four parts:
 
-- **Learn**: the theory, with key results, common traps and insight boxes, plus quizzes and interactive figures inside the text (see below).
+- **Learn**: the theory, with key results, common traps, insight boxes and worked examples, plus quizzes, practice problems and interactive figures inside the text (see below). Chapters run to roughly 850–1800 words of explanation.
 - **Lab**: one or two interactive simulations with suggested experiments.
-- **Problems**: a scored set that climbs from concept checks to olympiad-level problems, with hints and full solutions.
+- **Problems**: every scored problem has hints and a full solution. Most of them sit in the text, after the section they practise; the Problems tab keeps six end-of-chapter problems (the hardest core and olympiad ones) and an index of where the rest appear.
 - **Formulas**: the chapter's key results, also collected on a formula sheet grouped by subject.
 
 | Subject | Chapters | Labs | Scored problems | Drill templates | Game |
 |---------|---------:|-----:|----------------:|----------------:|------|
-| Maths | 24 | 48 | 336 | 72 | — |
+| Maths | 25 | 50 | 351 | 75 | — |
 | Physics | 24 | 48 | 516 | 96 | — |
 | Chemistry | 26 | 52 | 450 | 104 | ChemCorp |
 | Biology | 28 | 56 | 480 | 112 | Cytos |
 | Astronomy | 16 | 32 | 288 | 64 | Firmament |
 | Computing | 21 | 62 | 246 | 57 | Code lab: 35 judged challenges |
-| **Total** | **139** | **298** | **2316** | **505** | |
+| **Total** | **140** | **300** | **2331** | **508** | |
 
 Every science chapter has at least two labs. Many second labs use a shared explorer engine (`js/sims-explore.js`), so a chapter can describe a small model (controls, curves, a picture and a readout) as a config instead of new drawing code.
 
@@ -28,10 +28,11 @@ The Learn tab is built to keep the learning curve gentle (`js/learn.js`, `js/big
 - **The big idea**: every chapter opens with a plain-language summary and an everyday picture, before any formula.
 - **Before you start**: a fold-out refresher of the prerequisite chapters, with their big ideas and key formulas.
 - **Try it**: the worked examples are quizzes, not reveal boxes. You answer first (number or multiple choice), can ask for one step-by-step hint at a time, and the worked solution opens once you are right or after two honest attempts. Each first solve pays 3 XP.
-- **Check your understanding**: each chapter's scored concept checks appear inline, right after the section they test (matched by the words they share). Solving them there counts towards the chapter.
-- **Figures**: every chapter has at least one interactive figure inside the text (a slider-driven plot or diagram), 117 in all.
+- **Practice in the text**: every scored problem except the six end-of-chapter ones appears inline, after the section it best matches (by shared key words, spread so no section is crowded), concept checks first. Solving them there counts towards the chapter. A problem can be pinned to a section with `sec`.
+- **Worked examples**: every section has at least one worked example in a shaded box, and longer sections are split into sub-topics.
+- **Figures**: every chapter has at least one interactive figure inside the text (a slider-driven plot or diagram), 128 in all.
 - Maths chapters also carry authored **quick checks** in the middle of each section.
-- **In plain words**: every one of the 495 sections opens with a one- or two-sentence summary in everyday language, so you know where the section is going before the details start (`js/plain.js`, `js/plain/*.js`).
+- **In plain words**: every one of the 584 sections opens with a one- or two-sentence summary in everyday language, so you know where the section is going before the details start (`js/plain.js`, `js/plain/*.js`).
 - **Glossary**: 328 key terms get a dotted underline the first time they appear in a section. Hover, tap or tab to one to see a plain definition without leaving the page. Words are matched to the subject (so "induction" means one thing in physics and another in maths), text inside equations is never touched, and the whole list is searchable at `#glossary`, where the summaries and underlines can also be switched off.
 - **Say it back**: each section ends with a self-explanation prompt. You write the idea in a sentence or two, then compare it with the plain-words summary (+3 XP the first time).
 
@@ -60,11 +61,11 @@ The first core problem of every chapter has hand-written steps (`js/steps/*.js`,
 
 ## Maths
 
-Twenty-four chapters in six parts. It is a self-contained track: the other subjects do not require it.
+Twenty-five chapters in six parts. It is a self-contained track: the other subjects do not require it.
 
 | Part | Chapters |
 |------|----------|
-| Precalculus | Functions and their graphs; sequences, sums and the binomial theorem |
+| Precalculus | Functions and their graphs; trigonometry; sequences, sums (sigma and pi notation) and the binomial theorem |
 | Calculus | Limits and continuity; the derivative; using derivatives; the integral; techniques of integration |
 | Further calculus | Sequences, series and Taylor polynomials; differential equations; calculus in several variables; vector calculus; complex numbers |
 | Linear algebra and statistics | Vectors and matrices; probability and statistics |
@@ -112,7 +113,7 @@ The game layer is built around learning rather than a separate game (`js/wallet.
 
 - **Wallet**: ◉ coins and 💎 gems. Coins are staked on lab predictions; gems buy streak freezes. Both come from goals, streaks, chapter stars, mastery and the features below.
 - **Mystery boxes and critical insights** (variable rewards): boxes hold a random reward (coins, gems, a Double XP boost, a streak freeze, or a rare jackpot). A clean first-try solve sometimes drops one: 3% for concept checks, 8% for core and 18% for olympiad problems, at most three a day, and guaranteed after 14 clean solves without one.
-- **Predict, then test**: the Lab tab of every chapter opens with a prediction about its first lab (118 in all). Pick an answer and stake 0–50 coins, run the experiment, and the answer unlocks once you have used the lab. Right pays back double the stake.
+- **Predict, then test**: the Lab tab of every chapter opens with a prediction about its first lab (140 in all). Pick an answer and stake 0–50 coins, run the experiment, and the answer unlocks once you have used the lab. Right pays back double the stake.
 - **Collections** (`#cards`): every problem you solve for the first time drops a card from that subject's collection: **Famous numbers** (maths, 95), the **Particle zoo** (physics, 97: quarks, leptons, bosons, mesons, baryons, exotic hadrons, nuclei, quasiparticles and hypothetical particles), the **Periodic table** (chemistry, all 118 elements, laid out as the table), the **Tree of life** (biology, 104 organisms) and the **Messier catalogue** (astronomy, all 110 objects), 524 cards in all. Cards have five rarities sorted as a pyramid in every collection (about 40% common, 27% uncommon, 18% rare, 10% epic, 5% legendary, `js/play/rarity.js`): elements get rarer towards the heavy and synthetic ones, Messier objects by how faint they are, and the album can be sorted by rarity, catalogue order or owned first. Concept, core and olympiad problems have increasingly generous odds, an epic is guaranteed within 25 cards of a collection and a legendary within 80, duplicates become shards, and shards craft any missing card. Completing 25/50/75/100% of a collection pays gems (and a premium box at 100%). Problems solved before collections existed give unopened cards.
 - **Mistake journal** (`#journal`): every wrong answer to a scored problem is logged with what you entered. Tag what went wrong (misread, concept, units, algebra, where to start) and the page shows your most common slip with advice. Fixing a mistake at least 20 hours later pays double XP.
 - **In the wild** (`#wild`): passing a chapter unlocks a card on where its ideas are used in real life (GPS, mRNA vaccines, RSA encryption…) and an Olympiad challenge, the chapter's hardest problem, worth +25 bonus XP.
@@ -347,6 +348,7 @@ js/predict.js         lab prediction bets (data: js/play/predictions.js)
 js/cards.js           rarity card collections, #cards (data: js/play/collections.js)
 js/journal.js         mistake journal, #journal
 js/campaign.js        In the wild, #wild (data: js/play/wild-data.js)
+js/expand/*.js        longer text for every chapter (sub-topics, worked examples) and the Trigonometry chapter, added with PB.expand
 js/extra/*.js         second labs, further problem batches (including maths-extra.js) and extra drills (drills-extra.js); loaded last so problem ids stay stable
 games/                copies of ChemCorp, Cytos and Firmament
 js/app.js             routing, views, problem cards, HUD
@@ -370,6 +372,8 @@ Each chapter file calls `PB.addChapter({...})` with a `subject` (`physics` by de
 `type` can be `num` (numerical, graded within `tol`), `mcq` (`answer` is the option index) or `multi` (`answer` is an array of indices).
 
 A chapter can also carry `big` (its plain-language opening), `figures` (interactive figures in the text: `{ s: sectionIndex, title, caption, params }`, where `params` is an explorer config) and, per section, `quizzes` (quick checks: `{ type: 'num' | 'mcq', q, answer, options, unit, tol, hints, solution }`). An explorer config can declare draggable handles with `drag: [{ plot: 0, get: (v) => [x, y], set: (v, x, y) => { ... } }]` (data coordinates of a plot) or `{ pic: true, ... }` (canvas pixels of the picture). Put `<div data-quiz="0"></div>` or `<div data-fig="0"></div>` in a section's HTML to place a quiz or figure at that spot; otherwise they go at the end of the section. Worked examples written as `<details class="example">` become Try-it quizzes when `PB.EXQ['chapter:section:index']` gives their answer.
+
+To lengthen an existing chapter without touching its file, call `PB.expand('chapter', { sections: { 0: { html, quizzes }, … }, add: [{ title, html, plain }], end: [problem numbers], big })`. Section HTML and quizzes are appended (their `data-quiz` indices are renumbered), `add` appends new sections at the end (never reorder sections: saved progress is keyed by section index), `end` chooses the end-of-chapter problems (by default the last three olympiad problems plus the last core ones, six in all) and `big` replaces the opening summary. Use `<h3 class="sub">` for sub-topics and `<div class="worked">` for worked examples.
 
 To add guided steps to a problem, call `PB.addSteps('chapter-n', [{ phase: 'understand' | 'plan' | 'do' | 'check', type: 'num' | 'mcq' | 'reveal', q, answer, options, unit, tol, explain }])`. Plain-words summaries are a list with one string per section: `PB.addPlain('chapter', [...])`. Glossary entries are `PB.addGlossary({ 'term|alias': ['definition', 'physics,chemistry'] })` (leave the subject list empty for all subjects).
 
