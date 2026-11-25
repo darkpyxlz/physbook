@@ -1,8 +1,8 @@
 # Scibook
 
-An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving). Each subject has its own tab and chapters, three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
+An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving). Instead of five separate sciences it is one skill tree of 27 small books (118 modules), with maths at the centre, physics branching out of maths, chemistry and astronomy out of physics, and biology out of chemistry. Three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
 
-Every chapter has four parts:
+Every module (chapter) has four parts:
 
 - **Learn**: the theory, with key results, common traps and insight boxes, plus quizzes and interactive figures inside the text (see below).
 - **Lab**: one or two interactive simulations with suggested experiments.
@@ -77,8 +77,6 @@ Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton'
 `js/loop.js`. Learning earns XP; XP fills three meters at once, and each one pays coins, gems, boosts and mystery boxes.
 
 - **Daily goal** (Casual 20, Regular 60, Serious 120 or Intense 200 XP, shown as a ring in the header): reaching it pays coins and keeps your streak. **Streak milestones** at 3, 7, 14, 30, 60 and 100 days pay gems and chests. **Streak freezes** (200 gems, hold up to two) are used automatically if you miss a day.
-- **Study Pass** (`#pass`): every 150 XP earned in the calendar month unlocks one of 40 reward tiers (coins, gems and boosts, a mystery box every 5th tier and a premium box every 10th). It resets on the 1st.
-- **Weekly league** (`#league`): you and 14 simulated rival study bots, ranked by XP earned this week. The top 5 move up through ten leagues (Bronze to Diamond), the bottom 5 move down, and the top 3 win gems, coins and (top 2) a Double XP boost. Rival paces rise in higher leagues; the page says plainly that they are bots.
 - **Chapter rewards**: each chapter star pays out (coins, then gems, then a premium box for the third), passing a chapter pays coins, and reaching 50% and 80% mastery pays gems.
 - **Today's plan** on the dashboard lists the next best actions with their payoff: the next section to read, reviews due, the ×2 daily challenge, unclaimed pass rewards, or spending your loot.
 - **Feedback**: a reward window with confetti for every milestone, a floating "+XP" on each solved problem, level-up celebrations, and damage numbers and hit shakes in fights.
@@ -88,38 +86,36 @@ Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton'
 `js/loop2.js`, based on a review of how Duolingo, Khan Academy and Brilliant use game elements and on the research behind them (see [docs/GAMIFICATION.md](docs/GAMIFICATION.md)). Rewards are tied to learning behaviour (accuracy, mastery, explaining, coming back), not just time spent.
 
 - **Combo**: each first-try correct answer in a row (without hints or the guide) adds bonus XP, up to +10 per answer.
-- **Double XP boosts**: earned by finishing all three daily quests, perfect sessions, Study Pass tiers and top league places. You choose when to start one (15 minutes); it shows as a ⚡2× chip in the header.
+- **Double XP boosts**: earned by finishing all three daily quests, perfect sessions and from mystery boxes. You choose when to start one (15 minutes); it shows as a ⚡2× chip in the header.
 - **Mastery levels** (as on Khan Academy): every chapter is Not started, Attempted, Familiar, Proficient or Mastered, shown on its page and on the chapter cards, and each subject page shows its overall course mastery.
 - **Mastery challenge** (`#challenge-<chapter>`): five fresh questions with no hints. Five out of five earns the chapter's crown, Mastered level, 100 gems and a key.
 - **Monthly challenge**: earn 1500 XP in a calendar month for 150 gems, a premium mystery box and that month's badge.
-- **Achievements with tiers** (I to V) for solving, reading, guided steps, labs, crowns, streaks and perfect sessions, plus **personal bests** (best day, longest combo, longest streak, highest league).
+- **Achievements with tiers** (I to V) for solving, reading, guided steps, labs, crowns, streaks and perfect sessions, plus **personal bests** (best day, longest combo, longest streak).
 - **Gentle nudges**: a toast when you are 70% of the way to your daily goal, and an evening banner if your streak is at risk.
 - **Welcome**: a new learner picks a daily goal and a starting subject, and gets a 10 XP head start.
-- **League opt-out**: rankings motivate some people and stress others, so the league can be switched off on its page.
 
-## Skill tree
+## Skill tree dashboard and books
 
-Chapters unlock Duolingo-style. Each chapter lists its prerequisites in `js/prereqs.js`, within its own science and across sciences: chemistry needs physics foundations (for example, Atomic Structure needs Electrostatics), biology needs chemistry (Enzymes needs Reaction Kinetics), and astronomy needs physics (Kepler's Laws needs Gravitation). A chapter is **passed** when all its concept checks and at least two core problems are solved.
+`js/tree.js`. The dashboard (`#home`) is the skill tree: one radial map of 27 books.
 
-- Locked chapters show what they need, with links straight to the missing problems.
-- **Test out**: answer 5 randomised drills from the missing prerequisites; 4 right opens the chapter for good.
-- The **Skill tree** page (`#tree`) shows every chapter and its dependencies.
-- The tree can be switched off on the Level & badges page for free roaming. The problem arena, daily challenge and gym only draw from open chapters.
+- **Maths at the centre** (6 books), **physics** on the first ring (7 books, growing from Precalculus, Calculus, Further Calculus and statistics), **chemistry** and **astronomy** on the next ring, both branching from physics, and **biology** on the outer ring, growing from chemistry.
+- Each node is a **book**: a short, self-contained course of 2–9 modules (the old subject parts, such as Mechanics, Organic Chemistry or The Stars). Its ring shows progress, lines show which books it builds on, and locked books are dimmed.
+- Click a book to see its modules, each with its mastery level and **next tasks**: read the next section (it jumps straight to it), predict and test in the lab, pass it, adaptive practice, or the mastery challenge. **Up next for you** lists the three best tasks across the whole tree.
+- The **Library** (`#library`) lists every book by branch, and each book has its own page (`#book-<id>`). The header and sidebar navigate by book instead of by science.
+- Modules unlock Duolingo-style from their prerequisites (`js/prereqs.js`, plus the maths links in `js/tree.js`); a module you have already worked in always stays open. **Test out**: 4 of 5 drills from the missing prerequisites opens a module for good. Free roaming can be switched on in Level & badges.
 
 ## Play
 
-The game layer is built around learning rather than a separate game (`js/wallet.js`, `js/predict.js`, `js/cards.js`, `js/raids.js`, `js/journal.js`, `js/campaign.js`, data in `js/play/`).
+The game layer is built around learning rather than a separate game (`js/wallet.js`, `js/predict.js`, `js/cards.js`, `js/journal.js`, `js/campaign.js`, data in `js/play/`).
 
-- **Wallet**: ◉ coins and 💎 gems. Coins are staked on lab predictions; gems buy streak freezes. Both come from goals, streaks, the Study Pass, league places, chapter stars, mastery and the features below.
+- **Wallet**: ◉ coins and 💎 gems. Coins are staked on lab predictions; gems buy streak freezes. Both come from goals, streaks, chapter stars, mastery and the features below.
 - **Mystery boxes and critical insights** (variable rewards): boxes hold a random reward (coins, gems, a Double XP boost, a streak freeze, or a rare jackpot). A clean first-try solve sometimes drops one: 3% for concept checks, 8% for core and 18% for olympiad problems, at most three a day, and guaranteed after 14 clean solves without one.
 - **Predict, then test**: the Lab tab of every chapter opens with a prediction about its first lab (118 in all). Pick an answer and stake 0–50 coins, run the experiment, and the answer unlocks once you have used the lab. Right pays back double the stake.
-- **Card collection** (`#cards`): 70 cards in five sets (Theorems, Physicists, Elements, Organisms, Night sky). Each card is won by reaching Proficient mastery in its chapter, and can be polished to foil by answering its mini-quiz (+15 gems). A complete set pays 150 gems and a premium box, and unlocks a raid power.
-- **Weekly raid** (`#raid`): a solo raid. Each week a new boss is built from five chapters you have started, one per subject where possible. Each right answer takes 20 HP and each wrong one costs a heart (3 in Normal, 2 in Heroic, which has 7 stages). Completed card sets act as allies: Lemma (first miss is free), Second opinion (skip a stage), Catalyst (+1 heart), Regeneration (two right in a row restore a heart) and Navigator (key formulas shown).
+- **Collections** (`#cards`): every problem you solve for the first time drops a card from that subject's collection: **Famous numbers** (maths, 28), the **Particle zoo** (physics, 30), the **Periodic table** (chemistry, all 118 elements, laid out as the table), the **Tree of life** (biology, 34 organisms) and the **Messier catalogue** (astronomy, all 110 objects). Cards have five rarities; elements get rarer towards the heavy and synthetic ones, and Messier objects by how faint they are. Concept, core and olympiad problems have increasingly generous odds, an epic is guaranteed within 25 cards of a collection and a legendary within 80, duplicates become shards, and shards craft any missing card. Completing 25/50/75/100% of a collection pays gems (and a premium box at 100%). Problems solved before collections existed give unopened cards.
 - **Mistake journal** (`#journal`): every wrong answer to a scored problem is logged with what you entered. Tag what went wrong (misread, concept, units, algebra, where to start) and the page shows your most common slip with advice. Fixing a mistake at least 20 hours later pays double XP.
-- **Campaign map** (`#map`): each subject is a region (the Logic Spires, the Clockwork Valley, the Alchemist's Isles, the Living Forest, the Star Observatory) with a path of chapters lit by mastery level. The story moves on at 25%, 50%, 75% and 100% of chapters passed, each with gems and a box.
 - **In the wild** (`#wild`): passing a chapter unlocks a card on where its ideas are used in real life (GPS, mRNA vaccines, RSA encryption…) and an Olympiad challenge, the chapter's hardest problem, worth +25 bonus XP.
 
-The earlier gear, pets and boss RPG has been removed; old gold and keys were converted to coins.
+The earlier gear RPG, Study Pass, weekly league and raid have been removed; old gold and keys were converted to coins.
 
 ## Physics
 
@@ -308,7 +304,8 @@ js/bigideas.js        the plain-language "big idea" for every chapter
 js/learn.js           Try-it quizzes, inline concept checks, refreshers, PB.addFigures
 js/figures.js         interactive figures inside the text of the science chapters
 js/adaptive.js        mastery model, adaptive practice and spaced review, #adapt
-js/loop.js            daily goal, streaks and freezes, Study Pass, weekly league, chapter rewards, reward window, #pass, #league
+js/loop.js            daily goal, streaks and freezes, chapter rewards, reward window, #goal
+js/tree.js            the unified skill tree dashboard, books, library, #home, #library, #book-<id>
 js/guide.js            guided step-by-step solving (Pólya phases, auto and authored steps)
 js/steps/*.js          hand-written guided steps for the first core problem of every chapter
 js/loop2.js            combos, Double XP boosts, mastery levels and challenges, monthly challenge, achievements, personal bests, nudges, welcome
@@ -319,10 +316,9 @@ js/sims-explore.js    the general explorer lab engine and PB.addLabs
 js/prereqs.js         the skill tree: prerequisites, locks, test-outs, #tree
 js/wallet.js          coins and gems, mystery boxes, critical insights
 js/predict.js         lab prediction bets (data: js/play/predictions.js)
-js/cards.js           card collection, #cards (data: js/play/cards-data.js)
-js/raids.js           solo weekly raid, #raid
+js/cards.js           rarity card collections, #cards (data: js/play/collections.js)
 js/journal.js         mistake journal, #journal
-js/campaign.js        campaign map and In the wild, #map, #wild (data: js/play/wild-data.js)
+js/campaign.js        In the wild, #wild (data: js/play/wild-data.js)
 js/extra/*.js         second labs, further problem batches (including maths-extra.js) and extra drills (drills-extra.js); loaded last so problem ids stay stable
 games/                copies of ChemCorp, Cytos and Firmament
 js/app.js             routing, views, problem cards, HUD

@@ -76,9 +76,11 @@
     const nav = $('#subjectTabs');
     if (!nav) return;
     nav.innerHTML = '';
-    PB.SUBJECTS.forEach(function (sub) {
-      nav.appendChild(h('a', { class: 'subj-tab subj-' + sub.id + (curSubject() === sub.id && currentActive !== 'home' ? ' active' : ''), href: '#' + sub.id }, [h('span', { class: 'subj-mark', text: sub.mark }), h('span', { class: 'subj-name', text: sub.name })]));
+    const cur = S().lastChapter && PB.chapter(S().lastChapter), bk = cur && PB.bookOf ? PB.bookOf(cur) : null;
+    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['cards', '🃏', 'Collections']].forEach(function (t) {
+      nav.appendChild(h('a', { class: 'subj-tab' + (currentActive === t[0] ? ' active' : ''), href: '#' + t[0] }, [h('span', { class: 'subj-mark', text: t[1] }), h('span', { class: 'subj-name', text: t[2] })]));
     });
+    if (bk) nav.appendChild(h('a', { class: 'subj-tab subj-' + bk.subject + (currentActive === 'book-' + bk.id || (cur && currentActive === cur.id) ? ' active' : ''), href: '#book-' + bk.id }, [h('span', { class: 'subj-mark', text: bk.icon }), h('span', { class: 'subj-name', text: bk.title })]));
   }
   function renderHUD() {
     renderSubjectTabs();
@@ -106,28 +108,32 @@
   function renderSidebar(activeId) {
     const nav = $('#sidebar');
     nav.innerHTML = '';
-    nav.appendChild(h('div', { class: 'rail-group', text: 'Book' }));
-    [['home', 'Dashboard'], ['adapt', 'Adaptive practice'], ['pass', 'Study Pass'], ['league', 'League'], ['map', 'Campaign map'], ['raid', 'Weekly raid'], ['cards', 'Card collection'], ['journal', 'Mistake journal'], ['wild', 'In the wild'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['glossary', 'Glossary'], ['profile', 'Level & badges']].forEach(function (x) {
-      nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
-    });
-    const sub = PB.subject(curSubject());
-    nav.appendChild(h('div', { class: 'rail-group rail-subject', text: sub.name }));
-    nav.appendChild(h('a', { class: 'rail-link' + (activeId === sub.id ? ' active' : ''), href: '#' + sub.id }, [h('span', { class: 'rail-num', text: sub.mark }), h('span', { class: 'rail-name', text: sub.name + ' home' }), null]));
-    if (sub.game) nav.appendChild(h('a', { class: 'rail-link' + (activeId === 'game-' + sub.id ? ' active' : ''), href: '#game-' + sub.id }, [h('span', { class: 'rail-num', text: '▶' }), h('span', { class: 'rail-name', text: 'Play ' + sub.game.name }), null]));
-    sub.parts.forEach(function (part) {
-      const chs = PB.chaptersOf(sub.id).filter(function (c) { return c.part === part; });
-      if (!chs.length) return;
-      nav.appendChild(h('div', { class: 'rail-group', text: part }));
-      chs.forEach(function (c) {
+    const link = function (id, mark, name, extra) { return h('a', { class: 'rail-link' + (activeId === id ? ' active' : ''), href: '#' + id }, [h('span', { class: 'rail-num', text: mark }), h('span', { class: 'rail-name', text: name }), extra || null]); };
+    nav.appendChild(h('div', { class: 'rail-group', text: 'Learn' }));
+    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['adapt', '🎯', 'Adaptive practice'], ['gym', '🏋', 'Practice gym'], ['arena', '⚔', 'Problem arena'], ['journal', '📓', 'Mistake journal']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
+    nav.appendChild(h('div', { class: 'rail-group', text: 'Collect' }));
+    [['cards', '🃏', 'Collections'], ['wild', '🌍', 'In the wild'], ['goal', '🔥', 'Daily goal & streak'], ['profile', '🏅', 'Level & badges']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
+    nav.appendChild(h('div', { class: 'rail-group', text: 'Tools' }));
+    [['solver', '∑', 'Equation board'], ['formulas', 'ƒ', 'Formula sheet'], ['glossary', 'Aa', 'Glossary']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
+    const cur = PB.chapter(activeId) || (S().lastChapter && PB.chapter(S().lastChapter));
+    let bk = cur && PB.bookOf ? PB.bookOf(cur) : null;
+    if (/^book-/.test(activeId || '') && PB.book) bk = PB.book(activeId.slice(5));
+    if (!bk && PB.BOOKS) bk = PB.book(S().treeSel) || PB.BOOKS[0];
+    if (bk) {
+      nav.appendChild(h('div', { class: 'rail-group rail-subject', text: bk.icon + ' ' + bk.title }));
+      bk.chapters.forEach(function (c) {
         const st = PB.chapterStats(c), open = !PB.isUnlocked || PB.isUnlocked(c);
         nav.appendChild(h('a', { class: 'rail-link' + (activeId === c.id ? ' active' : '') + (open ? '' : ' locked'), href: '#ch-' + c.id }, [
-          h('span', { class: 'rail-num', text: String(c.num).padStart(2, '0') }),
+          h('span', { class: 'rail-num', text: String(c.module || c.num).padStart(2, '0') }),
           h('span', { class: 'rail-name', text: c.title }),
           h('span', { class: 'rail-prog' }, [open ? ring(st.progress, 26) : h('span', { class: 'rail-lock', text: '🔒' })])
         ]));
       });
-    });
+    }
+    nav.appendChild(h('div', { class: 'rail-group', text: 'Games' }));
+    PB.SUBJECTS.forEach(function (sub) { if (sub.game) nav.appendChild(link('game-' + sub.id, '▶', sub.game.name)); });
   }
+
   function setDrawer(open) {
     $('#sidebar').classList.toggle('open', open);
     $('#scrim').hidden = !open;
@@ -437,6 +443,7 @@
   }
 
   function viewHome() {
+    if (PB.views && PB.views.home) return PB.views.home();
     if (PB.syncGames) PB.syncGames();
     const L = PB.levelInfo();
     const all = PB.allProblems();
@@ -549,7 +556,7 @@
     const st = PB.chapterStats(ch);
     const head = h('header', { class: 'ch-head subj-' + ch.subject }, [
       h('div', { class: 'ch-art', 'aria-hidden': 'true', text: PB.subject(ch.subject).glyph || PB.subject(ch.subject).mark }),
-      h('div', { class: 'eyebrow', html: '<a href="#' + ch.subject + '">' + PB.subject(ch.subject).name + '</a> · Chapter ' + ch.num + ' · ' + ch.part }),
+      h('div', { class: 'eyebrow', html: (PB.bookOf ? '<a href="#book-' + ch.book + '">' + PB.bookOf(ch).icon + ' ' + ch.part + '</a> · Module ' + ch.module + ' of ' + PB.bookOf(ch).chapters.length + ' · ' + PB.subject(ch.subject).name : '<a href="#' + ch.subject + '">' + PB.subject(ch.subject).name + '</a> · Chapter ' + ch.num + ' · ' + ch.part) }),
       h('h1', { text: ch.title }),
       h('p', { class: 'lede', html: ch.subtitle }),
       h('div', { class: 'ch-progress' }, [
@@ -630,6 +637,9 @@
       const el = document.getElementById('prob-' + pendingFocus);
       pendingFocus = null;
       if (el) setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+    } else if (PB.pendingSection != null && tab === 'learn') {
+      const sid = 'sec-' + PB.pendingSection; PB.pendingSection = null;
+      setTimeout(function () { const el = document.getElementById(sid); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
     } else window.scrollTo(0, 0);
   }
 
@@ -779,6 +789,7 @@
   PB.route = function () { route(); };
   function route() {
     const hs = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    if (PB.views && PB.views[hs || 'home']) return PB.views[hs || 'home']();
     if (!hs || hs === 'home') return viewHome();
     if (hs === 'arena') return viewArena();
     if (hs === 'formulas') return viewFormulas();
@@ -802,6 +813,7 @@
   renderHUD();
   route();
   PB.problemCard = problemCard;
+  PB.ring = ring;
   PB.mountLab = mountLab;
   /* Hooks for extra views (such as the equation board in solver.js) */
   PB.h = h;

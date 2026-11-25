@@ -4,8 +4,7 @@
      with a no-hints Mastery Challenge that awards a crown;
    - a monthly challenge badge, personal bests and tiered achievements (Duolingo achievements);
    - gentle nudges (goal-gradient "almost there", streak at risk) and a welcome flow with a head start
-     (endowed progress);
-   - the league can be switched off (leaderboards make some learners anxious). */
+     (endowed progress). */
 (function () {
   'use strict';
   const PB = window.PB, h = PB.h, S = function () { return PB.S; };
@@ -190,7 +189,7 @@
     const row = h('div', { class: 'today' });
     const mx = monthXP(), mm = month();
     row.appendChild(h('div', { class: 'today-card monthly' + (l.monthly[mm] ? ' done' : '') }, [h('div', { class: 'eyebrow', text: '📅 ' + monthName(mm) + ' challenge' }), h('h3', { text: l.monthly[mm] ? 'Badge earned! 🎉' : 'Earn ' + MONTH_XP + ' XP this month' }), h('div', { class: 'xpbar lg', html: '<span style="width:' + Math.min(100, Math.round(100 * mx / MONTH_XP)) + '%"></span>' }), h('small', { text: Math.min(mx, MONTH_XP) + ' / ' + MONTH_XP + ' XP · reward: 150 gems, a chest and the month’s badge' })]));
-    row.appendChild(h('div', { class: 'today-card boost' + (PB.boostActive() ? ' on' : '') }, [h('div', { class: 'eyebrow', text: '⚡ Double XP' }), h('h3', { text: PB.boostActive() ? 'Active: ' + Math.ceil((l.boostUntil - Date.now()) / 60000) + ' min left' : l.boosts + ' boost' + (l.boosts === 1 ? '' : 's') + ' ready' }), PB.boostActive() ? h('small', { text: 'Everything you earn counts double.' }) : l.boosts ? h('button', { class: 'btn small primary', type: 'button', text: 'Activate for ' + BOOST_MIN + ' min', onclick: () => { PB.activateBoost(); PB.route(); } }) : h('small', { text: 'Earn boosts from all three daily quests, perfect sessions and the Study Pass.' })]));
+    row.appendChild(h('div', { class: 'today-card boost' + (PB.boostActive() ? ' on' : '') }, [h('div', { class: 'eyebrow', text: '⚡ Double XP' }), h('h3', { text: PB.boostActive() ? 'Active: ' + Math.ceil((l.boostUntil - Date.now()) / 60000) + ' min left' : l.boosts + ' boost' + (l.boosts === 1 ? '' : 's') + ' ready' }), PB.boostActive() ? h('small', { text: 'Everything you earn counts double.' }) : l.boosts ? h('button', { class: 'btn small primary', type: 'button', text: 'Activate for ' + BOOST_MIN + ' min', onclick: () => { PB.activateBoost(); PB.route(); } }) : h('small', { text: 'Earn boosts from all three daily quests, perfect sessions and mystery boxes.' })]));
     row.appendChild(h('div', { class: 'today-card combo' }, [h('div', { class: 'eyebrow', text: '🔥 Combo' }), h('h3', { text: l.combo >= 2 ? '×' + l.combo + ' right now' : 'Build a combo' }), h('small', { text: 'Each first-try correct answer in a row adds bonus XP (up to +10). Best: ' + (l.pb.combo || 0) + '.' })]));
     wrap.appendChild(row);
   };
@@ -205,17 +204,12 @@
     ACH.forEach((a) => { const v = a[4](), t = tierOf(a), nx = a[5][t] || a[5][4], pv = t >= 5 ? 1 : (v - (a[5][t - 1] || 0)) / (nx - (a[5][t - 1] || 0)); g.appendChild(h('div', { class: 'ach tier' + t }, [h('span', { class: 'ach-ico', text: a[1] }), h('div', {}, [h('b', { text: a[2] + (t ? ' ' + ROMAN[t] : '') }), h('span', { class: 'xpbar', html: '<span style="width:' + Math.round(Math.max(0, Math.min(1, pv)) * 100) + '%"></span>' }), h('small', { text: v + ' ' + a[3] + (t < 5 ? ' · next tier at ' + nx : ' · maxed!') })])])); });
     wrap.appendChild(g);
     wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Personal bests' })]));
-    const lg = S().loop && S().loop.league ? S().loop.league : {};
-    const TIERN = ['Bronze', 'Silver', 'Gold', 'Sapphire', 'Ruby', 'Emerald', 'Amethyst', 'Pearl', 'Obsidian', 'Diamond'];
-    wrap.appendChild(h('div', { class: 'stat-row pb-row' }, [[(S().streak.best || 0) + ' d', 'longest streak'], [String(l.pb.dayXP || 0), 'most XP in a day'], [String(l.pb.combo || 0), 'longest combo'], [TIERN[lg.best || 0], 'highest league'], [String(l.perfect), 'perfect sessions'], [String(Object.keys(l.crowns).length), 'crowns']].map((x) => h('div', { class: 'stat' }, [h('b', { text: x[0] }), h('span', { text: x[1] })]))));
+    wrap.appendChild(h('div', { class: 'stat-row pb-row' }, [[(S().streak.best || 0) + ' d', 'longest streak'], [String(l.pb.dayXP || 0), 'most XP in a day'], [String(l.pb.combo || 0), 'longest combo'], [String(l.perfect), 'perfect sessions'], [String(Object.keys(l.crowns).length), 'crowns']].map((x) => h('div', { class: 'stat' }, [h('b', { text: x[0] }), h('span', { text: x[1] })]))));
     const months = Object.keys(l.monthly).sort();
     wrap.appendChild(h('div', { class: 'section-head' }, [h('h2', { text: 'Monthly badges' }), h('p', { text: months.length ? months.length + ' collected' : 'Earn ' + MONTH_XP + ' XP in a month to collect its badge.' })]));
     if (months.length) wrap.appendChild(h('div', { class: 'month-badges' }, months.map((m) => h('div', { class: 'month-badge' }, [h('span', { text: '📅' }), h('b', { text: monthName(m) })]))));
   };
 
-  /* ---------- League opt-out ---------- */
-  PB.leagueHidden = () => !!L2().noLeague;
-  PB.setLeagueHidden = (v) => { L2().noLeague = !!v; PB.save(); };
 
   /* ---------- Welcome: goal, subject and a head start ---------- */
   function welcome() {
