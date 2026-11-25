@@ -1324,3 +1324,5 @@ dfn.gl:hover, dfn.gl:focus { background: rgba(32, 80, 200, .1); outline: none; }
 .bk-mod.hl { border: 2px solid var(--ink); box-shadow: 0 4px 16px rgba(0,0,0,.08); }
 .sk-svg.far .sk-node:not(.near) .sk-label { display: none; }
 .sk-svg.far .sk-label { font-size: 26px; }
+.cc-sort { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.cc-tier { grid-column: 1 / -1; margin: 10px 0 2px; font-family: var(--mono, monospace); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--rc); border-bottom: 2px solid var(--rc); padding-bottom: 3px; }

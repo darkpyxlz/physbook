@@ -7,7 +7,30 @@
   const h = PB.h, S = () => PB.S;
 
   /* ---------- Maths at the centre: physics now grows from maths ---------- */
-  const extra = { 'toolkit': ['math-functions'], 'quantum': ['math-complex'], 'analytical': ['math-odes'], 'experimental': ['math-stats'], 'oscillations': ['math-derivatives'] };
+  // Calculus-based physics: each physics module needs the maths it actually uses.
+  const extra = {
+    'toolkit': ['math-functions'],
+    'kinematics': ['math-derivatives'],            // v = dx/dt, a = dv/dt
+    'newton': ['math-derivatives'],
+    'energy': ['math-integrals'],                  // W = ∫F·dx
+    'momentum': ['math-integrals'],                // impulse = ∫F dt, centre of mass
+    'rotation': ['math-integrals'],                // moments of inertia
+    'gravitation': ['math-integrals'],             // potential energy and escape
+    'fluids': ['math-integrals'],                  // pressure with depth
+    'oscillations': ['math-odes'],                 // x'' + γx' + ω²x = F(t)
+    'waves': ['math-multivar'],                    // the wave equation uses partial derivatives
+    'thermodynamics': ['math-integrals'],          // W = ∫p dV, ΔS = ∫dQ/T
+    'electrostatics': ['math-integrals'],          // fields of charge distributions, Gauss
+    'circuits': ['math-odes'],                     // RC charging
+    'magnetism': ['math-linear'],                  // cross products
+    'induction': ['math-derivatives', 'math-complex'], // emf = −dΦ/dt, AC phasors
+    'relativity': ['math-linear'],                 // Lorentz transformation as a matrix
+    'quantum': ['math-complex', 'math-odes'],      // the Schrödinger equation
+    'analytical': ['math-odes', 'math-multivar'],  // Lagrangians, normal modes
+    'experimental': ['math-stats'],
+    'chem-kinetics': ['math-integrals'],           // integrated rate laws
+    'astro-kepler': ['math-derivatives']
+  };
   Object.keys(extra).forEach((k) => { PB.PREREQS[k] = (PB.PREREQS[k] || []).concat(extra[k].filter((x) => (PB.PREREQS[k] || []).indexOf(x) < 0)); });
 
   /* ---------- Books ---------- */

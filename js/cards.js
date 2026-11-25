@@ -71,7 +71,7 @@
   });
 
   /* ---------- album ---------- */
-  let tab = null;
+  let tab = null, sortBy = 'rarity';
   function cell(c, x) {
     const k = K(), n = k.own[x.id] || 0, r = RAR[x.rarity];
     const el = h('button', { class: 'cc' + (n ? ' got' : '') + ' r' + x.rarity, type: 'button', style: (c.table ? 'grid-row:' + x.grid[0] + ';grid-column:' + x.grid[1] + ';' : '') + '--rc:' + r[1], title: (n ? x.name : (c.table || c.id === 'messier' ? x.name : '???')) + ' · ' + r[0], onclick: () => detail(c, x) }, [
@@ -113,8 +113,13 @@
     wrap.appendChild(head);
     if (k.packs[c.id]) wrap.appendChild(h('div', { class: 'cc-packs' }, [h('span', { text: '🎴 ' + k.packs[c.id] + ' unopened card' + (k.packs[c.id] > 1 ? 's' : '') + ' from problems you solved before collections existed.' }), h('button', { class: 'btn primary small', type: 'button', text: 'Open ' + Math.min(10, k.packs[c.id]), onclick: () => { const n = Math.min(10, k.packs[c.id]); k.packs[c.id] -= n; const res = []; for (let i = 0; i < n; i++) res.push(draw(c, 'core')); PB.save(); res.forEach((r, i) => setTimeout(() => announce(r, true), i * 150)); setTimeout(view, n * 150 + 200); } })]));
     wrap.appendChild(h('div', { class: 'cc-legend' }, RAR.map((r) => h('span', { style: '--rc:' + r[1] }, [h('i'), r[0]]))));
+    if (!c.table) wrap.appendChild(h('div', { class: 'cc-sort' }, [h('small', { text: 'Sort: ' })].concat([['rarity', 'By rarity'], ['order', c.id === 'messier' ? 'By M number' : 'Catalogue order'], ['owned', 'Owned first']].map((o) => h('button', { class: 'tag-chip' + (sortBy === o[0] ? ' on' : ''), type: 'button', text: o[1], onclick: () => { sortBy = o[0]; view(); } })))));
     const grid = h('div', { class: c.table ? 'cc-table' : 'cc-grid' });
-    c.cards.forEach((x) => grid.appendChild(cell(c, x)));
+    const list = c.cards.slice();
+    if (!c.table && sortBy === 'rarity') list.sort((a, b) => a.rarity - b.rarity || c.cards.indexOf(a) - c.cards.indexOf(b));
+    if (!c.table && sortBy === 'owned') list.sort((a, b) => (k.own[b.id] ? 1 : 0) - (k.own[a.id] ? 1 : 0) || a.rarity - b.rarity);
+    let lastR = -1;
+    list.forEach((x) => { if (!c.table && sortBy === 'rarity' && x.rarity !== lastR) { lastR = x.rarity; grid.appendChild(h('div', { class: 'cc-tier', style: '--rc:' + RAR[x.rarity][1], text: RAR[x.rarity][0] + ' · ' + c.cards.filter((y) => y.rarity === x.rarity && k.own[y.id]).length + '/' + c.cards.filter((y) => y.rarity === x.rarity).length })); } grid.appendChild(cell(c, x)); });
     wrap.appendChild(h('div', { class: c.table ? 'cc-scroll' : '' }, [grid]));
     wrap.appendChild(h('p', { class: 'predict-note', text: 'Drop odds (common → legendary): concept ' + ODDS.concept.join('/') + '%, core ' + ODDS.core.join('/') + '%, olympiad ' + ODDS.olympiad.join('/') + '%. An epic or better is guaranteed within ' + PITY_EPIC + ' cards of a collection, a legendary within ' + PITY_LEG + '.' }));
     PB.setView([wrap], 'cards');
