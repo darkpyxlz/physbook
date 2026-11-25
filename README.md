@@ -1,6 +1,6 @@
 # Scibook
 
-An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving). Instead of five separate sciences it is one skill tree of 27 small books (118 modules), with maths at the centre, physics branching out of maths, chemistry and astronomy out of physics, and biology out of chemistry. Three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
+An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving). Instead of five separate sciences it is one tech tree of 118 modules in 27 small books, with maths at the centre, physics branching out of maths, chemistry and astronomy out of physics, and biology out of chemistry. Three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
 
 Every module (chapter) has four parts:
 
@@ -94,14 +94,14 @@ Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton'
 - **Gentle nudges**: a toast when you are 70% of the way to your daily goal, and an evening banner if your streak is at risk.
 - **Welcome**: a new learner picks a daily goal and a starting subject, and gets a 10 XP head start.
 
-## Skill tree dashboard and books
+## Tech tree dashboard and books
 
-`js/tree.js`. The dashboard (`#home`) is the skill tree: one radial map of 27 books.
+`js/tree.js`. The dashboard (`#home`) is a tech tree of all 118 modules.
 
-- **Maths at the centre** (6 books), **physics** on the first ring (7 books, growing from Precalculus, Calculus, Further Calculus and statistics), **chemistry** and **astronomy** on the next ring, both branching from physics, and **biology** on the outer ring, growing from chemistry.
-- Each node is a **book**: a short, self-contained course of 2–9 modules (the old subject parts, such as Mechanics, Organic Chemistry or The Stars). Its ring shows progress, lines show which books it builds on, and locked books are dimmed.
-- Click a book to see its modules, each with its mastery level and **next tasks**: read the next section (it jumps straight to it), predict and test in the lab, pass it, adaptive practice, or the mastery challenge. **Up next for you** lists the three best tasks across the whole tree.
-- The **Library** (`#library`) lists every book by branch, and each book has its own page (`#book-<id>`). The header and sidebar navigate by book instead of by science.
+- **One centre, branching outwards**: Functions and Their Graphs sits at the centre. Every other module is placed on a ring by how many prerequisites deep it is (16 rings), in a wedge under the module it most depends on, so the map grows like a tree: maths around the centre, physics branching out of maths, chemistry and astronomy out of physics, biology out of chemistry. Coloured lines are the main branches; faint dashed lines are extra prerequisites. Selecting a module highlights what it needs and what it unlocks.
+- Nodes show subject colour, progress ring, mastery (filled more as mastery grows), ★ passed, ♛ mastered and 🔒 locked. Drag to pan, scroll or pinch to zoom, and use the buttons to zoom, see the whole tree or re-centre. On phones a list of books sits under the map.
+- Selecting a module opens its book alongside, with that module highlighted and the **next tasks** for each module: read the next section (it jumps straight there), predict and test in the lab, pass it, adaptive practice, or the mastery challenge. **Up next for you** lists the three best tasks across the tree.
+- **Books**: the 27 books (the old topic sections, such as Mechanics or Organic Chemistry) are short modular courses of 2–9 modules. The **Library** (`#library`) lists them, each has a page (`#book-<id>`), and the header and sidebar navigate by book.
 - Modules unlock Duolingo-style from their prerequisites (`js/prereqs.js`, plus the maths links in `js/tree.js`); a module you have already worked in always stays open. **Test out**: 4 of 5 drills from the missing prerequisites opens a module for good. Free roaming can be switched on in Level & badges.
 
 ## Play
@@ -111,7 +111,7 @@ The game layer is built around learning rather than a separate game (`js/wallet.
 - **Wallet**: ◉ coins and 💎 gems. Coins are staked on lab predictions; gems buy streak freezes. Both come from goals, streaks, chapter stars, mastery and the features below.
 - **Mystery boxes and critical insights** (variable rewards): boxes hold a random reward (coins, gems, a Double XP boost, a streak freeze, or a rare jackpot). A clean first-try solve sometimes drops one: 3% for concept checks, 8% for core and 18% for olympiad problems, at most three a day, and guaranteed after 14 clean solves without one.
 - **Predict, then test**: the Lab tab of every chapter opens with a prediction about its first lab (118 in all). Pick an answer and stake 0–50 coins, run the experiment, and the answer unlocks once you have used the lab. Right pays back double the stake.
-- **Collections** (`#cards`): every problem you solve for the first time drops a card from that subject's collection: **Famous numbers** (maths, 28), the **Particle zoo** (physics, 30), the **Periodic table** (chemistry, all 118 elements, laid out as the table), the **Tree of life** (biology, 34 organisms) and the **Messier catalogue** (astronomy, all 110 objects). Cards have five rarities; elements get rarer towards the heavy and synthetic ones, and Messier objects by how faint they are. Concept, core and olympiad problems have increasingly generous odds, an epic is guaranteed within 25 cards of a collection and a legendary within 80, duplicates become shards, and shards craft any missing card. Completing 25/50/75/100% of a collection pays gems (and a premium box at 100%). Problems solved before collections existed give unopened cards.
+- **Collections** (`#cards`): every problem you solve for the first time drops a card from that subject's collection: **Famous numbers** (maths, 95), the **Particle zoo** (physics, 97: quarks, leptons, bosons, mesons, baryons, exotic hadrons, nuclei, quasiparticles and hypothetical particles), the **Periodic table** (chemistry, all 118 elements, laid out as the table), the **Tree of life** (biology, 104 organisms) and the **Messier catalogue** (astronomy, all 110 objects), 524 cards in all. Cards have five rarities; elements get rarer towards the heavy and synthetic ones, and Messier objects by how faint they are. Concept, core and olympiad problems have increasingly generous odds, an epic is guaranteed within 25 cards of a collection and a legendary within 80, duplicates become shards, and shards craft any missing card. Completing 25/50/75/100% of a collection pays gems (and a premium box at 100%). Problems solved before collections existed give unopened cards.
 - **Mistake journal** (`#journal`): every wrong answer to a scored problem is logged with what you entered. Tag what went wrong (misread, concept, units, algebra, where to start) and the page shows your most common slip with advice. Fixing a mistake at least 20 hours later pays double XP.
 - **In the wild** (`#wild`): passing a chapter unlocks a card on where its ideas are used in real life (GPS, mRNA vaccines, RSA encryption…) and an Olympiad challenge, the chapter's hardest problem, worth +25 bonus XP.
 

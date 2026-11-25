@@ -72,59 +72,111 @@
   }
   PB.moduleTasks = tasks;
 
-  /* ---------- Layout: rings around maths ---------- */
-  const R = { maths: 175, physics: 410, chemistry: 640, astronomy: 640, biology: 860 };
-  const SECTOR = { maths: [-90, 270], physics: null, chemistry: [100, 175], astronomy: [-80, -10], biology: [105, 170] };
-  const PHYS_ANGLE = { 'Foundations': 200, 'Mechanics': -55, 'Thermal Physics': 140, 'Electricity & Magnetism': 100, 'Optics': -15, 'Modern Physics': 30, 'Olympiad Extensions': 245 };
+  /* ---------- Tech-tree layout: every module is a node, placed by how far it is from the centre ---------- */
+  const STEP = 96, R0 = 70, NODE = 25, SUBJ_ORDER = { maths: 0, physics: 1, astronomy: 2, chemistry: 3, biology: 4 };
+  let LAY = null;
   function layout() {
-    const pos = {};
-    PB.SUBJECTS.forEach((sub) => {
-      const bs = PB.BOOKS.filter((b) => b.subject === sub.id), r = R[sub.id];
-      bs.forEach((b, i) => {
-        let a;
-        if (sub.id === 'physics') a = PHYS_ANGLE[b.title.replace('Physics Foundations', 'Foundations')] != null ? PHYS_ANGLE[b.title.replace('Physics Foundations', 'Foundations')] : i * 360 / bs.length;
-        else if (sub.id === 'maths') a = -90 + i * 360 / bs.length;
-        else { const s = SECTOR[sub.id]; a = bs.length > 1 ? s[0] + (s[1] - s[0]) * i / (bs.length - 1) : (s[0] + s[1]) / 2; }
-        const t = a * Math.PI / 180;
-        pos[b.id] = [r * Math.cos(t), r * Math.sin(t)];
-      });
+    if (LAY) return LAY;
+    const depth = {}, dep = (id) => { if (depth[id] != null) return depth[id]; const pr = (PB.PREREQS[id] || []).filter((x) => PB.chapter(x)); depth[id] = pr.length ? 1 + Math.max.apply(null, pr.map(dep)) : 0; return depth[id]; };
+    PB.chapters.forEach((c) => dep(c.id));
+    // Primary parent: the deepest prerequisite (so a child sits exactly one ring further out).
+    const parent = {}, kids = {};
+    PB.chapters.forEach((c) => {
+      const pr = (PB.PREREQS[c.id] || []).filter((x) => PB.chapter(x));
+      if (!pr.length) return;
+      pr.sort((a, b) => depth[b] - depth[a] || (PB.chapter(a).subject === c.subject ? -1 : 1));
+      parent[c.id] = pr[0]; (kids[pr[0]] = kids[pr[0]] || []).push(c.id);
     });
-    return pos;
+    const ord = (id) => { const c = PB.chapter(id); return SUBJ_ORDER[c.subject] * 1000 + PB.chapters.indexOf(c); };
+    Object.keys(kids).forEach((k) => kids[k].sort((a, b) => ord(a) - ord(b)));
+    const leaves = {}, lv = (id) => { if (leaves[id] != null) return leaves[id]; leaves[id] = (kids[id] || []).reduce((a, k) => a + lv(k), 0) || 1; return leaves[id]; };
+    const roots = PB.chapters.filter((c) => !parent[c.id]).map((c) => c.id);
+    const pos = {}, ang = {};
+    function place(id, a0, a1) {
+      const a = (a0 + a1) / 2, r = depth[id] ? R0 + depth[id] * STEP : 0;
+      ang[id] = a; pos[id] = [r * Math.cos(a), r * Math.sin(a)];
+      let t = a0; const W = (k) => Math.pow(lv(k), 0.6), tot = (kids[id] || []).reduce((x, k) => x + W(k), 0);
+      (kids[id] || []).forEach((k) => { const w = (a1 - a0) * W(k) / tot; place(k, t, t + w); t += w; });
+    }
+    let t = -Math.PI / 2; const all = roots.reduce((a, r) => a + lv(r), 0);
+    roots.forEach((r) => { const w = 2 * Math.PI * lv(r) / all; place(r, t, t + w); t += w; });
+    const maxD = Math.max.apply(null, Object.values(depth));
+    LAY = { pos: pos, depth: depth, parent: parent, maxD: maxD };
+    return LAY;
   }
   const BRANCH = { maths: 'The centre: Maths', physics: 'First branch: Physics', chemistry: 'Branch from physics: Chemistry', astronomy: 'Branch from physics: Astronomy', biology: 'Branch from chemistry: Biology' };
+  const short = (t, n) => (t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t);
 
   function svgTree(sel) {
-    const pos = layout();
-    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-    Object.values(pos).forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); });
-    x0 -= 130; y0 -= 90; x1 += 130; y1 += 170;
-    let s = '<svg class="sk-svg" viewBox="' + x0.toFixed(0) + ' ' + y0.toFixed(0) + ' ' + (x1 - x0).toFixed(0) + ' ' + (y1 - y0).toFixed(0) + '" role="img" aria-label="Skill tree of books">';
-    [R.maths, R.physics, R.chemistry, R.biology].forEach((r) => { s += '<circle cx="0" cy="0" r="' + r + '" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 10" opacity=".7"/>'; });
-    s += '<circle cx="0" cy="0" r="70" fill="var(--s-maths)" opacity=".12"/><text x="0" y="14" text-anchor="middle" font-size="44" fill="var(--s-maths)" font-weight="700">∑</text>';
-    PB.BOOKS.forEach((b) => b.prereqs.forEach((pid) => {
-      const a = pos[pid], c = pos[b.id]; if (!a || !c) return;
-      const mx = (a[0] + c[0]) / 2 * 0.86, my = (a[1] + c[1]) / 2 * 0.86;
-      const lit = bookStats(PB.book(pid)).passed > 0;
-      s += '<path d="M' + a[0].toFixed(0) + ' ' + a[1].toFixed(0) + ' Q' + mx.toFixed(0) + ' ' + my.toFixed(0) + ' ' + c[0].toFixed(0) + ' ' + c[1].toFixed(0) + '" fill="none" stroke="var(--s-' + b.subject + ')" stroke-width="' + (lit ? 5 : 2.5) + '" opacity="' + (lit ? 0.6 : 0.12) + '"/>';
+    const L = layout(), pos = L.pos, R = R0 + (L.maxD + 1) * STEP;
+    const selCh = PB.chapter(sel), near = {};
+    if (selCh) { near[sel] = 1; (PB.PREREQS[sel] || []).forEach((x) => { near[x] = 1; }); PB.chapters.forEach((c) => { if ((PB.PREREQS[c.id] || []).indexOf(sel) >= 0) near[c.id] = 1; }); }
+    let s = '<svg class="sk-svg" viewBox="' + (-R) + ' ' + (-R) + ' ' + 2 * R + ' ' + 2 * R + '" role="img" aria-label="Tech tree of all modules">';
+    for (let d = 1; d <= L.maxD; d++) s += '<circle cx="0" cy="0" r="' + (R0 + d * STEP) + '" fill="none" stroke="var(--line)" stroke-width="1.5" opacity=".55"/>';
+    // Connections: first the extra prerequisites (faint), then the main branch lines.
+    PB.chapters.forEach((c) => (PB.PREREQS[c.id] || []).forEach((pid) => {
+      const a = pos[pid], b = pos[c.id]; if (!a || !b) return;
+      const main = L.parent[c.id] === pid, hl = sel && (c.id === sel || pid === sel), lit = PB.isPassed(PB.chapter(pid));
+      if (!main && !hl) { s += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" stroke="var(--ink-3)" stroke-width="1.2" stroke-dasharray="3 6" opacity=".35"/>'; return; }
+      // Main branch: leave the parent radially, then bend towards the child.
+      const ra = Math.hypot(a[0], a[1]), rb = Math.hypot(b[0], b[1]), th = Math.atan2(b[1], b[0]), rm = (ra + rb) / 2;
+      const cx = rm * Math.cos(th), cy = rm * Math.sin(th);
+      s += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' Q' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" stroke="var(--s-' + c.subject + ')" stroke-width="' + (hl ? 6 : lit ? 4.5 : 3) + '" opacity="' + (hl ? 0.95 : lit ? 0.75 : 0.35) + '" stroke-linecap="round"/>';
     }));
-    PB.BOOKS.forEach((b) => {
-      const p = pos[b.id], st = bookStats(b), open = st.open > 0, r = 56, C = 2 * Math.PI * (r + 7), col = 'var(--s-' + b.subject + ')';
-      const words = b.title.split(' '), lines = [];
-      words.forEach((w) => { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= 14) lines[lines.length - 1] += ' ' + w; else lines.push(w); });
-      s += '<a href="#home" class="sk-node' + (sel === b.id ? ' sel' : '') + (open ? '' : ' locked') + '" data-book="' + b.id + '" tabindex="0" role="button" aria-label="' + b.title + ', ' + PB.subject(b.subject).name + ', ' + st.passed + ' of ' + st.n + ' modules passed">' +
-        '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (r + 7) + '" fill="none" stroke="var(--line)" stroke-width="6"/>' +
-        '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (r + 7) + '" fill="none" stroke="' + col + '" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + (C * st.progress).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 ' + p[0] + ' ' + p[1] + ')"/>' +
-        '<circle class="sk-disc" cx="' + p[0] + '" cy="' + p[1] + '" r="' + r + '" fill="' + (open ? col : 'var(--surface-2)') + '" fill-opacity="' + (open ? (st.passed === st.n ? 1 : 0.85) : 1) + '" stroke="' + (sel === b.id ? 'var(--ink)' : 'none') + '" stroke-width="4"/>' +
-        '<text x="' + p[0] + '" y="' + (p[1] + 15) + '" text-anchor="middle" font-size="42" opacity="' + (open ? 1 : 0.35) + '">' + b.icon + '</text>' +
-        (open ? '' : '<text x="' + (p[0] + 38) + '" y="' + (p[1] - 30) + '" text-anchor="middle" font-size="24">🔒</text>') +
-        lines.map((l, i) => '<text class="sk-label" x="' + p[0] + '" y="' + (p[1] + r + 40 + i * 30) + '" text-anchor="middle" font-size="27" font-weight="700" fill="var(--ink)">' + l.replace(/&/g, '&amp;') + '</text>').join('') +
-        '<text x="' + p[0] + '" y="' + (p[1] + r + 40 + lines.length * 30) + '" text-anchor="middle" font-size="22" fill="var(--ink-2)">' + st.passed + '/' + st.n + (st.passed === st.n ? ' ★' : '') + '</text></a>';
+    PB.chapters.forEach((c) => {
+      const p = pos[c.id], open = PB.isUnlocked(c), passed = PB.isPassed(c), Lv = PB.masteryLevel ? PB.masteryLevel(c) : 0, col = 'var(--s-' + c.subject + ')', b = PB.bookOf(c);
+      const C = 2 * Math.PI * (NODE + 5), prog = PB.chapterStats(c).progress || 0, isSel = sel === c.id, dim = sel && !near[c.id];
+      s += '<g class="sk-node' + (isSel ? ' sel' : '') + (near[c.id] ? ' near' : '') + (open ? '' : ' locked') + '" data-ch="' + c.id + '" tabindex="0" role="button" opacity="' + (dim ? 0.55 : 1) + '" aria-label="' + c.title.replace(/"/g, '') + ', ' + (passed ? 'passed' : open ? 'open' : 'locked') + '">' +
+        '<title>' + b.title.replace(/&/g, '&amp;') + ' · ' + c.title.replace(/&/g, '&amp;').replace(/</g, '') + '</title>' +
+        (isSel ? '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (NODE + 13) + '" fill="none" stroke="var(--ink)" stroke-width="3"/>' : '') +
+        '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (NODE + 5) + '" fill="var(--surface)" stroke="' + col + '" stroke-opacity="0.35" stroke-width="4"/>' +
+        (prog ? '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (NODE + 5) + '" fill="none" stroke="' + col + '" stroke-width="4" stroke-dasharray="' + (C * prog).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 ' + p[0] + ' ' + p[1] + ')"/>' : '') +
+        '<circle class="sk-disc" cx="' + p[0] + '" cy="' + p[1] + '" r="' + NODE + '" fill="' + (open ? col : 'var(--surface-2)') + '" fill-opacity="' + (open ? [0.45, 0.6, 0.75, 0.9, 1][Lv] : 1) + '"/>' +
+        '<text x="' + p[0] + '" y="' + (p[1] + 8) + '" text-anchor="middle" font-size="22" opacity="' + (open ? 1 : 0.4) + '">' + (Lv >= 4 ? '♛' : passed ? '★' : open ? b.icon : '🔒') + '</text>' +
+        '<text class="sk-label" x="' + p[0] + '" y="' + (p[1] + NODE + 22) + '" text-anchor="middle" font-size="15" font-weight="' + (isSel ? 800 : 600) + '" fill="' + (open ? 'var(--ink)' : 'var(--ink-3)') + '" paint-order="stroke" stroke="var(--surface)" stroke-width="4">' + short(c.title, 22).replace(/&/g, '&amp;') + '</text></g>';
     });
     return s + '</svg>';
   }
 
+  /* ---------- Pan and zoom ---------- */
+  function panZoom(box, getSvg, onPick) {
+    let vb = null, drag = null, pts = {};
+    const R = R0 + (layout().maxD + 1) * STEP;
+    function apply() { const svg = getSvg(); if (svg && vb) { svg.setAttribute('viewBox', vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h); svg.classList.toggle('far', vb.w > 1900); } }
+    function fit(cx, cy, w) { const asp = box.clientHeight / Math.max(1, box.clientWidth); vb = { w: w, h: w * asp, x: cx - w / 2, y: cy - w * asp / 2 }; apply(); }
+    function zoom(f, px, py) {
+      const r = box.getBoundingClientRect(), ux = vb.x + (px - r.left) / r.width * vb.w, uy = vb.y + (py - r.top) / r.height * vb.h;
+      const nw = Math.max(300, Math.min(2.4 * R, vb.w * f)), k = nw / vb.w;
+      vb = { w: nw, h: vb.h * k, x: ux - (ux - vb.x) * k, y: uy - (uy - vb.y) * k }; apply();
+    }
+    box.addEventListener('wheel', (e) => { e.preventDefault(); zoom(e.deltaY > 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY); }, { passive: false });
+    box.addEventListener('pointerdown', (e) => { if (e.target.closest && e.target.closest('.sk-ctrls')) return; pts[e.pointerId] = [e.clientX, e.clientY]; drag = { x: e.clientX, y: e.clientY, moved: 0, n: Object.keys(pts).length }; box.setPointerCapture(e.pointerId); });
+    box.addEventListener('pointermove', (e) => {
+      if (!pts[e.pointerId]) return;
+      const ids = Object.keys(pts);
+      if (ids.length === 2) {
+        const o = ids.map((i) => pts[i]), d0 = Math.hypot(o[0][0] - o[1][0], o[0][1] - o[1][1]);
+        pts[e.pointerId] = [e.clientX, e.clientY];
+        const n = ids.map((i) => pts[i]), d1 = Math.hypot(n[0][0] - n[1][0], n[0][1] - n[1][1]);
+        if (d0 > 0 && d1 > 0) zoom(d0 / d1, (n[0][0] + n[1][0]) / 2, (n[0][1] + n[1][1]) / 2);
+        drag.moved = 99; return;
+      }
+      const p = pts[e.pointerId], r = box.getBoundingClientRect();
+      vb.x -= (e.clientX - p[0]) * vb.w / r.width; vb.y -= (e.clientY - p[1]) * vb.h / r.height;
+      drag.moved += Math.abs(e.clientX - p[0]) + Math.abs(e.clientY - p[1]);
+      pts[e.pointerId] = [e.clientX, e.clientY]; apply();
+    });
+    const up = (e) => {
+      const was = drag; delete pts[e.pointerId];
+      if (was && was.moved < 6 && was.n === 1) { const el = document.elementFromPoint(e.clientX, e.clientY), n = el && el.closest && el.closest('.sk-node'); if (n) onPick(n.getAttribute('data-ch')); }
+      if (!Object.keys(pts).length) drag = null;
+    };
+    box.addEventListener('pointerup', up); box.addEventListener('pointercancel', (e) => { delete pts[e.pointerId]; drag = null; });
+    return { fit: fit, zoom: (f) => { const r = box.getBoundingClientRect(); zoom(f, r.left + r.width / 2, r.top + r.height / 2); }, all: () => { const P = Object.values(layout().pos), xs = P.map((q) => q[0]), ys = P.map((q) => q[1]); const x0 = Math.min.apply(null, xs) - 90, x1 = Math.max.apply(null, xs) + 90, y0 = Math.min.apply(null, ys) - 70, y1 = Math.max.apply(null, ys) + 110; const asp = box.clientHeight / Math.max(1, box.clientWidth); fit((x0 + x1) / 2, (y0 + y1) / 2, Math.max(x1 - x0, (y1 - y0) / asp)); }, focus: (id, w) => { const p = layout().pos[id] || [0, 0]; fit(p[0], p[1], w || Math.min(1500, 2.15 * R)); }, apply: apply };
+  }
+
   /* ---------- Book panel: modules and their next tasks ---------- */
-  function bookPanel(b, full) {
+  function bookPanel(b, full, hl) {
     const st = bookStats(b), sub = PB.subject(b.subject);
     const box = h('section', { class: 'bk-panel subj-' + b.subject });
     box.appendChild(h('div', { class: 'bk-head' }, [
@@ -135,7 +187,7 @@
     const list = h('ol', { class: 'bk-mods' });
     b.chapters.forEach((c) => {
       const ts = tasks(c), L = PB.masteryLevel ? PB.masteryLevel(c) : 0, open = PB.isUnlocked(c);
-      const li = h('li', { class: 'bk-mod' + (open ? '' : ' locked') + (PB.isPassed(c) ? ' passed' : '') });
+      const li = h('li', { class: 'bk-mod' + (open ? '' : ' locked') + (PB.isPassed(c) ? ' passed' : '') + (hl === c.id ? ' hl' : '') });
       li.appendChild(h('div', { class: 'bk-mod-top' }, [
         h('span', { class: 'bk-num', text: String(c.module) }),
         h('a', { class: 'bk-title', href: '#ch-' + c.id, text: c.title }),
@@ -165,11 +217,12 @@
   function viewHome() {
     if (PB.syncGames) PB.syncGames();
     const s = S(), L = PB.levelInfo();
-    if (!s.treeSel || !PB.book(s.treeSel)) { const c = s.lastChapter && PB.chapter(s.lastChapter); s.treeSel = c ? c.book : PB.BOOKS[0].id; }
+    if (PB.book(s.treeSel)) s.treeSel = PB.book(s.treeSel).chapters[0].id;
+    if (!s.treeSel || !PB.chapter(s.treeSel)) s.treeSel = (s.lastChapter && PB.chapter(s.lastChapter)) ? s.lastChapter : PB.chapters.find((c) => !(PB.PREREQS[c.id] || []).length).id;
     const wrap = h('div', { class: 'wrap-wide' });
     const nPass = PB.chapters.filter((c) => PB.isPassed(c)).length;
     wrap.appendChild(h('div', { class: 'sk-top' }, [
-      h('div', {}, [h('div', { class: 'eyebrow', text: PB.BOOKS.length + ' books · ' + PB.chapters.length + ' modules · ' + nPass + ' passed · level ' + L.level + ' ' + L.title }), h('h1', { text: 'Your skill tree', style: 'margin-top:6px' }), h('p', { class: 'lede', text: 'One map of everything, with maths at the centre. Physics grows out of maths, chemistry and astronomy out of physics, and biology out of chemistry. Pick a book to see its modules and your next task in each.' })])
+      h('div', {}, [h('div', { class: 'eyebrow', text: PB.BOOKS.length + ' books · ' + PB.chapters.length + ' modules · ' + nPass + ' passed · level ' + L.level + ' ' + L.title }), h('h1', { text: 'Your tech tree', style: 'margin-top:6px' }), h('p', { class: 'lede', text: 'Every module is a node. The centre is where everything starts; each ring outwards needs the ring before it. Maths grows into physics, physics into chemistry and astronomy, chemistry into biology. Drag to move, scroll or pinch to zoom, and tap a node to see its tasks.' })])
     ]));
     const rec = recommended();
     if (rec.length) {
@@ -177,27 +230,38 @@
       rec.forEach(([c, t], k) => r.appendChild(h('a', { class: 'plan-row' + (k === 0 ? ' first' : ''), href: t.href, onclick: t.sec != null ? () => { PB.pendingSection = t.sec; } : null }, [h('span', { class: 'plan-ico', text: t.ico }), h('span', { class: 'plan-txt', html: '<b>' + PB.bookOf(c).title + ' · ' + c.title + '</b> — ' + t.text }), h('span', { class: 'plan-rw', text: t.rw || '' }), h('span', { class: 'plan-go', text: '→' })])));
       wrap.appendChild(r);
     }
-    const tree = h('div', { class: 'sk-tree', html: svgTree(s.treeSel) });
+    const legend = h('div', { class: 'sk-legend' }, PB.SUBJECTS.map((sub) => h('span', { class: 'subj-' + sub.id }, [h('i', { style: 'background:var(--s-' + sub.id + ')' }), sub.name])).concat([h('span', {}, ['★ passed']), h('span', {}, ['♛ mastered']), h('span', {}, ['🔒 locked'])]));
+    const box = h('div', { class: 'sk-tree' });
+    const draw = () => { box.querySelectorAll('svg').forEach((x) => x.remove()); box.insertAdjacentHTML('afterbegin', svgTree(s.treeSel)); pz && pz.apply(); };
+    const ctrls = h('div', { class: 'sk-ctrls' }, [
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zoom in', text: '+', onclick: () => pz.zoom(1 / 1.35) }),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zoom out', text: '−', onclick: () => pz.zoom(1.35) }),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Show the whole tree', text: '⤢', onclick: () => pz.all() }),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Centre on the selected module', text: '◎', onclick: () => pz.focus(s.treeSel) })
+    ]);
+    box.appendChild(ctrls);
     const list = h('div', { class: 'sk-list' });
     PB.SUBJECTS.forEach((sub) => {
       list.appendChild(h('div', { class: 'sk-ring-label subj-' + sub.id, text: BRANCH[sub.id] }));
       const row = h('div', { class: 'sk-chips' });
-      PB.BOOKS.filter((b) => b.subject === sub.id).forEach((b) => { const st = bookStats(b); row.appendChild(h('button', { class: 'sk-chip subj-' + b.subject + (s.treeSel === b.id ? ' sel' : '') + (st.open ? '' : ' locked'), type: 'button', 'data-book': b.id }, [h('span', { text: st.open ? b.icon : '🔒' }), h('b', { text: b.title }), h('small', { text: st.passed + '/' + st.n })])); });
+      PB.BOOKS.filter((b) => b.subject === sub.id).forEach((b) => { const st = bookStats(b); row.appendChild(h('button', { class: 'sk-chip subj-' + b.subject + (PB.chapter(s.treeSel).book === b.id ? ' sel' : '') + (st.open ? '' : ' locked'), type: 'button', 'data-book': b.id }, [h('span', { text: st.open ? b.icon : '🔒' }), h('b', { text: b.title }), h('small', { text: st.passed + '/' + st.n })])); });
       list.appendChild(row);
     });
     const panel = h('div', { class: 'sk-panel' });
-    panel.appendChild(bookPanel(PB.book(s.treeSel)));
-    const grid = h('div', { class: 'sk-grid' }, [h('div', { class: 'sk-map' }, [tree, list]), panel]);
-    wrap.appendChild(grid);
-    const pick = (id) => {
-      s.treeSel = id; PB.save();
-      tree.innerHTML = svgTree(id);
-      list.querySelectorAll('.sk-chip').forEach((x) => x.classList.toggle('sel', x.getAttribute('data-book') === id));
-      panel.innerHTML = ''; panel.appendChild(bookPanel(PB.book(id)));
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const showPanel = () => { panel.innerHTML = ''; const c = PB.chapter(s.treeSel); panel.appendChild(bookPanel(PB.bookOf(c), false, c.id)); };
+    showPanel();
+    wrap.appendChild(h('div', { class: 'sk-grid' }, [h('div', { class: 'sk-map' }, [legend, box, list]), panel]));
+    let pz = null;
+    const pick = (id, fromList) => {
+      s.treeSel = id; PB.save(); draw();
+      list.querySelectorAll('.sk-chip').forEach((x) => x.classList.toggle('sel', x.getAttribute('data-book') === PB.chapter(id).book));
+      showPanel();
+      if (fromList) pz.focus(id);
+      const m = panel.querySelector('.bk-mod.hl');
+      if (m && window.innerWidth < 1100) m.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
-    grid.addEventListener('click', (e) => { const n = e.target.closest && e.target.closest('[data-book]'); if (n && !e.target.closest('.sk-panel')) { e.preventDefault(); pick(n.getAttribute('data-book')); } });
-    grid.addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const n = e.target.closest && e.target.closest('.sk-node'); if (n) { e.preventDefault(); pick(n.getAttribute('data-book')); } });
+    list.addEventListener('click', (e) => { const n = e.target.closest && e.target.closest('[data-book]'); if (n) pick(PB.book(n.getAttribute('data-book')).chapters[0].id, true); });
+    box.addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const n = e.target.closest && e.target.closest('.sk-node'); if (n) { e.preventDefault(); pick(n.getAttribute('data-ch')); } });
     if (PB.homeTop) PB.homeTop(wrap);
     const dp = PB.dailyProblem && PB.dailyProblem();
     if (dp) {
@@ -210,6 +274,10 @@
     }
     if (PB.homeExtras) PB.homeExtras(wrap);
     PB.setView([wrap], 'home');
+    draw();
+    pz = panZoom(box, () => box.querySelector('svg'), (id) => pick(id));
+    pz.focus(s.treeSel, 1300);
+    window.addEventListener('resize', function onR() { if (!document.body.contains(box)) return window.removeEventListener('resize', onR); pz.focus(s.treeSel); });
   }
 
   /* ---------- Library and book pages ---------- */
@@ -247,6 +315,7 @@
   }
   PB.views.home = viewHome;
   PB.views.tree = viewHome;
+  PB.techLayout = layout;
   PB.views.library = viewLibrary;
   PB.BOOKS.forEach((b) => { PB.views['book-' + b.id] = () => viewBook(b.id); });
   // Old subject pages now open the first book of that branch.
