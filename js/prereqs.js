@@ -39,7 +39,14 @@
     'astro-sphere': ['toolkit'], 'astro-time': ['astro-sphere'], 'astro-moon': ['astro-time'], 'astro-telescopes': ['astro-sphere', 'geometric-optics'],
     'astro-kepler': ['astro-sphere', 'gravitation'], 'astro-planets': ['astro-kepler', 'thermal'], 'astro-smallbodies': ['astro-kepler'], 'astro-exoplanets': ['astro-planets', 'astro-telescopes'],
     'astro-magnitudes': ['astro-telescopes'], 'astro-spectra': ['astro-magnitudes', 'chem-atom'], 'astro-hr': ['astro-spectra'], 'astro-binaries': ['astro-hr', 'astro-kepler'],
-    'astro-evolution': ['astro-hr'], 'astro-milkyway': ['astro-evolution'], 'astro-galaxies': ['astro-milkyway'], 'astro-cosmology': ['astro-galaxies', 'relativity']
+    'astro-evolution': ['astro-hr'], 'astro-milkyway': ['astro-evolution'], 'astro-galaxies': ['astro-milkyway'], 'astro-cosmology': ['astro-galaxies', 'relativity'],
+    // Computing (its own starting point: the command line needs nothing before it)
+    'cs-data': ['cs-shell'], 'cs-internet': ['cs-data'], 'cs-web': ['cs-internet'],
+    'py-basics': ['cs-shell'], 'py-control': ['py-basics'], 'py-functions': ['py-control'], 'py-objects': ['py-functions'],
+    'js-basics': ['py-control'], 'js-dom': ['js-basics', 'cs-web'], 'js-async': ['js-dom'],
+    'cpp-basics': ['py-control'], 'cpp-memory': ['cpp-basics', 'cs-data'], 'cpp-stl': ['cpp-basics'],
+    'cp-complexity': ['py-functions'], 'cp-sorting': ['cp-complexity'], 'cp-greedy': ['cp-sorting'], 'cp-dp': ['cp-greedy'],
+    'cp-graphs': ['cp-sorting'], 'cp-structures': ['cp-graphs'], 'cp-maths': ['cp-complexity']
   };
   PB.prereqsOf = function (ch) { return (PB.PREREQS[ch.id] || []).map(PB.chapter).filter(Boolean); };
   PB.isPassed = function (ch) {
@@ -169,7 +176,7 @@
     const wrap = h('div', { class: 'wrap-wide' });
     wrap.appendChild(h('div', { class: 'eyebrow', text: PB.unlockedCount() + ' of ' + PB.chapters.length + ' chapters open' }));
     wrap.appendChild(h('h1', { text: 'Skill tree', style: 'font-size:34px;margin-top:6px' }));
-    wrap.appendChild(h('p', { class: 'lede', text: 'Every chapter and what it builds on. Physics foundations open chemistry and astronomy; chemistry opens biology. Pass a chapter (all concept checks plus two core problems) to light up the paths that leave it.' }));
+    wrap.appendChild(h('p', { class: 'lede', text: 'Every chapter and what it builds on. Physics foundations open chemistry and astronomy; chemistry opens biology; computing starts from the command line. Pass a chapter (all concept checks plus two core problems) to light up the paths that leave it.' }));
     PB.SUBJECTS.forEach(function (sub) {
       wrap.appendChild(h('h2', { class: 'formula-subject', text: sub.name }));
       sub.parts.forEach(function (part) {

@@ -53,7 +53,7 @@
       const skip = !par || par.closest(SKIP);
       // Split by $ so that text inside $...$ (MathJax source) is never touched; parity carries across nodes.
       const parts = txt.split('$');
-      if (skip || count >= MAX_PER_SECTION) { dollars += parts.length - 1; return; }
+      if (skip || count >= MAX_PER_SECTION) { if (!(par && par.closest('code,pre'))) dollars += parts.length - 1; return; }
       let changed = false;
       const frag = document.createDocumentFragment();
       parts.forEach(function (part, i) {
