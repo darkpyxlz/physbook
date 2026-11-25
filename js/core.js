@@ -20,7 +20,9 @@
       game: { id: 'cytos', name: 'Cytos', path: 'games/cytos/index.html', blurb: 'You are a cell: express genes, build organelles, respire, signal, repair DNA and fight viruses.' } },
     { id: 'astronomy', name: 'Astronomy', mark: 'As', glyph: '✦', blurb: 'The sky, the Solar System, stars, galaxies and the universe, with the observational skills of astronomy olympiads.',
       parts: ['The Sky', 'The Solar System', 'The Stars', 'Galaxies and Cosmology'],
-      game: { id: 'firmament', name: 'Firmament', path: 'games/firmament/index.html', blurb: 'Run a space corporation on the real night sky and colonise all 88 constellations.' } }
+      game: { id: 'firmament', name: 'Firmament', path: 'games/firmament/index.html', blurb: 'Run a space corporation on the real night sky and colonise all 88 constellations.' } },
+    { id: 'computing', name: 'Computing', mark: '💻', glyph: '</>', blurb: 'How computers, files, the command line and the web work; programming in Python, JavaScript and C++ with a code interpreter built in; then competitive programming: complexity, sorting and searching, greedy, dynamic programming, graphs, data structures and number theory, with judged challenges.',
+      parts: ['How Computers and the Web Work', 'Python', 'JavaScript and the Web', 'C++', 'Competitive Programming'] }
   ];
   PB.subject = function (id) { return PB.SUBJECTS.find(function (s) { return s.id === id; }); };
   PB.chaptersOf = function (sid) { return PB.chapters.filter(function (c) { return c.subject === sid; }); };

@@ -128,4 +128,7 @@
     biology: ['The Living Forest', ['A forest full of life you cannot yet explain. A single cell glows on the path.', 'Inside the cell you find the machinery: membranes, enzymes and the energy of ATP.', 'DNA reveals its code, and inheritance follows rules you can predict.', 'Organs, plants and populations work in balance; you see the forest as a system.', 'From molecules to ecosystems, the forest makes sense. Evolution ties it all together.']],
     astronomy: ['The Star Observatory', ['A dusty observatory on a mountain top. The telescope points at a sky you cannot read yet.', 'You learn the sky’s coordinates and the clockwork of Sun, Moon and planets.', 'Starlight starts to talk: brightness, colour and spectra give distances and temperatures.', 'You follow stars from birth to explosion, and weigh them using their companions.', 'Your telescope reaches the edge of the observable universe. You know where everything came from.']]
   };
+  // Subjects added in their own files (such as computing) register here before this file loads.
+  Object.assign(PB.WILD, PB.WILD_EXTRA || {});
+  Object.assign(PB.CAMPAIGN, PB.CAMPAIGN_EXTRA || {});
 })();

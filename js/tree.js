@@ -39,7 +39,8 @@
     'physics/Foundations': '📏', 'Mechanics': '⚙️', 'Thermal Physics': '🔥', 'Electricity & Magnetism': '⚡', 'Optics': '🔍', 'Modern Physics': '⚛️', 'Olympiad Extensions': '🏆',
     'chemistry/Foundations': '⚗️', 'Physical Chemistry': '🌡️', 'Inorganic Chemistry': '🧪', 'Organic Chemistry': '⌬', 'Analysis': '🔬',
     'Cells and Molecules': '🧫', 'Genetics': '🧬', 'Physiology': '🫀', 'Diversity of Life': '🦋', 'Evolution and Ecology': '🌿',
-    'The Sky': '🌌', 'The Solar System': '🪐', 'The Stars': '⭐', 'Galaxies and Cosmology': '🌀'
+    'The Sky': '🌌', 'The Solar System': '🪐', 'The Stars': '⭐', 'Galaxies and Cosmology': '🌀',
+    'How Computers and the Web Work': '🌐', 'Python': '🐍', 'JavaScript and the Web': '🟨', 'C++': '🖥️', 'Competitive Programming': '⏱️'
   };
   const slug = (s) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   PB.BOOKS = [];
@@ -96,16 +97,19 @@
   PB.moduleTasks = tasks;
 
   /* ---------- Tech-tree layout: every module is a node, placed by how far it is from the centre ---------- */
-  const STEP = 96, R0 = 70, NODE = 25, SUBJ_ORDER = { maths: 0, physics: 1, astronomy: 2, chemistry: 3, biology: 4 };
+  const STEP = 96, R0 = 70, NODE = 25, SUBJ_ORDER = { computing: -1, maths: 0, physics: 1, astronomy: 2, chemistry: 3, biology: 4 };
+  // Layout-only anchors: a branch that needs no prerequisite still grows out of the centre of the tree.
+  const ANCHOR = { 'cs-shell': 'math-functions' };
+  const preOf = (id) => (PB.PREREQS[id] || []).concat(ANCHOR[id] && (PB.PREREQS[id] || []).indexOf(ANCHOR[id]) < 0 ? [ANCHOR[id]] : []).filter((x) => PB.chapter(x));
   let LAY = null;
   function layout() {
     if (LAY) return LAY;
-    const depth = {}, dep = (id) => { if (depth[id] != null) return depth[id]; const pr = (PB.PREREQS[id] || []).filter((x) => PB.chapter(x)); depth[id] = pr.length ? 1 + Math.max.apply(null, pr.map(dep)) : 0; return depth[id]; };
+    const depth = {}, dep = (id) => { if (depth[id] != null) return depth[id]; const pr = preOf(id); depth[id] = pr.length ? 1 + Math.max.apply(null, pr.map(dep)) : 0; return depth[id]; };
     PB.chapters.forEach((c) => dep(c.id));
     // Primary parent: the deepest prerequisite (so a child sits exactly one ring further out).
     const parent = {}, kids = {};
     PB.chapters.forEach((c) => {
-      const pr = (PB.PREREQS[c.id] || []).filter((x) => PB.chapter(x));
+      const pr = preOf(c.id);
       if (!pr.length) return;
       pr.sort((a, b) => depth[b] - depth[a] || (PB.chapter(a).subject === c.subject ? -1 : 1));
       parent[c.id] = pr[0]; (kids[pr[0]] = kids[pr[0]] || []).push(c.id);
@@ -127,7 +131,7 @@
     LAY = { pos: pos, depth: depth, parent: parent, maxD: maxD };
     return LAY;
   }
-  const BRANCH = { maths: 'The centre: Maths', physics: 'First branch: Physics', chemistry: 'Branch from physics: Chemistry', astronomy: 'Branch from physics: Astronomy', biology: 'Branch from chemistry: Biology' };
+  const BRANCH = { maths: 'The centre: Maths', physics: 'First branch: Physics', chemistry: 'Branch from physics: Chemistry', astronomy: 'Branch from physics: Astronomy', biology: 'Branch from chemistry: Biology', computing: 'Branch from maths: Computing' };
   const short = (t, n) => (t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t);
 
   function svgTree(sel) {
@@ -137,7 +141,7 @@
     let s = '<svg class="sk-svg" viewBox="' + (-R) + ' ' + (-R) + ' ' + 2 * R + ' ' + 2 * R + '" role="img" aria-label="Tech tree of all modules">';
     for (let d = 1; d <= L.maxD; d++) s += '<circle cx="0" cy="0" r="' + (R0 + d * STEP) + '" fill="none" stroke="var(--line)" stroke-width="1.5" opacity=".55"/>';
     // Connections: first the extra prerequisites (faint), then the main branch lines.
-    PB.chapters.forEach((c) => (PB.PREREQS[c.id] || []).forEach((pid) => {
+    PB.chapters.forEach((c) => preOf(c.id).forEach((pid) => {
       const a = pos[pid], b = pos[c.id]; if (!a || !b) return;
       const main = L.parent[c.id] === pid, hl = sel && (c.id === sel || pid === sel), lit = PB.isPassed(PB.chapter(pid));
       if (!main && !hl) { s += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" stroke="var(--ink-3)" stroke-width="1.2" stroke-dasharray="3 6" opacity=".35"/>'; return; }
@@ -245,7 +249,7 @@
     const wrap = h('div', { class: 'wrap-wide' });
     const nPass = PB.chapters.filter((c) => PB.isPassed(c)).length;
     wrap.appendChild(h('div', { class: 'sk-top' }, [
-      h('div', {}, [h('div', { class: 'eyebrow', text: PB.BOOKS.length + ' books · ' + PB.chapters.length + ' modules · ' + nPass + ' passed · level ' + L.level + ' ' + L.title }), h('h1', { text: 'Your tech tree', style: 'margin-top:6px' }), h('p', { class: 'lede', text: 'Every module is a node. The centre is where everything starts; each ring outwards needs the ring before it. Maths grows into physics, physics into chemistry and astronomy, chemistry into biology. Drag to move, scroll or pinch to zoom, and tap a node to see its tasks.' })])
+      h('div', {}, [h('div', { class: 'eyebrow', text: PB.BOOKS.length + ' books · ' + PB.chapters.length + ' modules · ' + nPass + ' passed · level ' + L.level + ' ' + L.title }), h('h1', { text: 'Your tech tree', style: 'margin-top:6px' }), h('p', { class: 'lede', text: 'Every module is a node. The centre is where everything starts; each ring outwards needs the ring before it. Maths grows into physics, physics into chemistry and astronomy, chemistry into biology, and computing grows from the centre on its own branch. Drag to move, scroll or pinch to zoom, and tap a node to see its tasks.' })])
     ]));
     const rec = recommended();
     if (rec.length) {

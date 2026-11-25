@@ -1,6 +1,6 @@
 # Scibook
 
-An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving). Instead of five separate sciences it is one tech tree of 118 modules in 27 small books, with maths at the centre, physics branching out of maths, chemistry and astronomy out of physics, and biology out of chemistry. Three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
+An interactive textbook for students working towards olympiads in mathematics, physics, chemistry, biology and astronomy (and the SYPT/IYPT style of problem solving), and for anyone learning to program, from the command line to competitive programming. Instead of separate subjects it is one tech tree of 139 modules in 32 small books, with maths at the centre, physics branching out of maths, chemistry and astronomy out of physics, biology out of chemistry, and computing on its own branch from the centre. Three of the sciences have their own game, and all of them feed one shared level, streak, quest list and badge collection.
 
 Every module (chapter) has four parts:
 
@@ -16,9 +16,10 @@ Every module (chapter) has four parts:
 | Chemistry | 26 | 52 | 450 | 104 | ChemCorp |
 | Biology | 28 | 56 | 480 | 112 | Cytos |
 | Astronomy | 16 | 32 | 288 | 64 | Firmament |
-| **Total** | **118** | **236** | **2070** | **448** | |
+| Computing | 21 | 62 | 246 | 57 | Code lab: 35 judged challenges |
+| **Total** | **139** | **298** | **2316** | **505** | |
 
-Every chapter has at least two labs. Many second labs use a shared explorer engine (`js/sims-explore.js`), so a chapter can describe a small model (controls, curves, a picture and a readout) as a config instead of new drawing code.
+Every science chapter has at least two labs. Many second labs use a shared explorer engine (`js/sims-explore.js`), so a chapter can describe a small model (controls, curves, a picture and a readout) as a config instead of new drawing code.
 
 ## Learning in the text
 
@@ -224,6 +225,27 @@ Parts: The Sky, The Solar System, The Stars, Galaxies and Cosmology.
 | 15 | Galaxies and the Distance Ladder | Cepheid distances, measuring the Hubble constant |
 | 16 | Cosmology | Expansion history from the Friedmann equations |
 
+## Computing
+
+Twenty-one modules in five books (`js/computing/*.js`), with a code interpreter built in (`js/code.js`). Computing grows from the centre of the tech tree on its own branch: the command line needs nothing before it.
+
+| Book | Modules |
+|------|---------|
+| How Computers and the Web Work | Files, folders and the command line; bits, bytes and data; how the internet works; how the web works (HTTP, HTTPS, the browser) |
+| Python | Values, variables and types; decisions and loops; functions, lists and dictionaries; errors, files, modules and classes |
+| JavaScript and the Web | JavaScript fundamentals; HTML, CSS and the DOM; asynchronous JavaScript, APIs and servers |
+| C++ | Compiling, types and functions; memory (stack, heap, references, pointers); the STL, classes and templates |
+| Competitive Programming | Judges, complexity and brute force; sorting, binary search, prefix sums and two pointers; recursion, backtracking and greedy; dynamic programming; graphs (DFS, BFS, Dijkstra); data structures (stacks, heaps, union-find, Fenwick trees); number theory for programmers |
+
+Competitive programming lives here rather than under maths; its number-theory module builds on the maths chapter of the same name.
+
+- **Code interpreter** (`js/code.js`, page `#code`): an editor with syntax highlighting, line numbers, auto-indent and Ctrl+Enter to run. **Python** runs in the browser with Pyodide in a Web Worker (the same version as the equation board, so it is cached once), with `input()`, `sys.stdin` and imports of packages such as numpy. **JavaScript** runs in a sandboxed worker with a Node-like `console.log`, `readline()`, `require('fs')`/`require('readline')` and top-level `await`. **C++** (GCC 13, C++17, -O2) is compiled and run on Compiler Explorer (godbolt.org), with Wandbox as a fallback, so it needs internet. **Web pages** (HTML, CSS and JS) render in a sandboxed iframe with their console shown underneath. Infinite loops are stopped by a time limit, and drafts are saved as you type.
+- **Judged challenges**: 35 contest-style problems (`PB.addChallenge`) with samples and hidden tests, including large tests that only an efficient algorithm passes. Submit gives a verdict per test, like an online judge: Accepted, Wrong answer, Runtime error, Time limit exceeded or Compilation error. Each challenge has hints and a model solution; the first Accepted pays XP and coins. They appear in chapter labs and in the Problem set tab of `#code`, and open full screen at `#code-<id>`. Expected outputs of hidden tests are computed by JavaScript reference solutions, and every model solution is checked against them. Compiler Explorer cuts program output at about 32 kB, so every test's expected output stays below that.
+- **Practice terminal** (`js/terminal.js`): a pretend Unix shell with its own file system (stored in the browser) for the command-line module: `ls`, `cd`, `mkdir`, `cp`, `mv`, `rm`, `cat`, `echo` with `>` and `>>`, pipes, `grep`, `sort`, `uniq`, `wc`, `find`, `tree`, `chmod`, globs, Tab completion and history, plus `python3 file.py` and `node file.js` through the interpreter. 19 guided missions pay 3 XP each.
+- **Labs** (`js/sims-cs.js`): bits, hex and UTF-8 bytes; the journey of a web request (DNS, TCP, TLS, HTTP) as a sequence diagram; packets routed through a network with loss, cut links and retransmission; an HTTP playground against a pretend server and JSON API; a sorting race of six algorithms; binary search; BFS, DFS, Dijkstra and A* on a grid you draw; DP tables (LCS, edit distance, knapsack) with traceback; recursion trees with and without memoisation; the JavaScript event loop; memory diagrams of names and objects (Python) and of stack, heap and pointers (C++); a binary heap.
+- The cheat sheet tab replaces the formula tab for computing (formula entries with a third element, a language, render as highlighted code), and code examples in the text have a **Try it** button that opens them in the playground.
+- The rest of the platform works as for the sciences: plain-words summaries and 40 computing glossary terms, quizzes in the text, drills for the gym and test-outs, a prediction for each module's first lab, In the wild cards, and the **Hall of computing** card collection (59 cards: languages, algorithms, machines, pioneers).
+
 ## Games
 
 Each science tab has a game that runs inside Scibook (`#game-chemistry`, `#game-biology`, `#game-astronomy`). They are copies of the standalone games in `games/`:
@@ -279,7 +301,7 @@ It is a static site with no build step. Open `index.html` in a browser, or serve
 python3 -m http.server 8000
 ```
 
-then visit `http://localhost:8000`. Math is typeset with MathJax 3 loaded from jsDelivr, so the first load needs an internet connection.
+then visit `http://localhost:8000`. Math is typeset with MathJax 3 loaded from jsDelivr, so the first load needs an internet connection. The code lab also loads Pyodide from jsDelivr on the first Python run, and compiles C++ online, so those need a connection too.
 
 ## Project layout
 
@@ -301,6 +323,11 @@ js/chemistry/NN-*.js  chemistry chapters (with their drills)
 js/biology/NN-*.js    biology chapters (with their drills)
 js/astronomy/NN-*.js  astronomy chapters (with their drills)
 js/maths/*.js         maths chapters, several per file, with their drills, quick checks and figures
+js/computing/*.js     computing chapters, several per file, with their drills and judged challenges
+js/code.js            code interpreter (Python, JavaScript, C++, web pages), editor, judge, #code and #code-<id>, PB.csKit
+js/terminal.js        the practice terminal with its pretend file system and missions
+js/sims-cs.js         computing labs (bits, request journey, packets, HTTP, sorting, search, graphs, DP, event loop, memory, heap)
+js/play/computing-play.js  computing predictions, In the wild cards, campaign region and card collection
 js/bigideas.js        the plain-language "big idea" for every chapter
 js/learn.js           Try-it quizzes, inline concept checks, refreshers, PB.addFigures
 js/figures.js         interactive figures inside the text of the science chapters
@@ -330,7 +357,7 @@ js/solver-library.js  the searchable equation library, with a meaning and unit f
 
 ## Adding content
 
-Each chapter file calls `PB.addChapter({...})` with a `subject` (`physics` by default, or `chemistry`, `biology`, `astronomy`) and a `part` from that subject's list in `PB.SUBJECTS`. Text is HTML with `$...$` and `$$...$$` for math, written inside `PB.R` (`String.raw`) template literals so LaTeX backslashes need no escaping. A problem looks like:
+Each chapter file calls `PB.addChapter({...})` with a `subject` (`physics` by default, or `maths`, `chemistry`, `biology`, `astronomy`, `computing`) and a `part` from that subject's list in `PB.SUBJECTS`. Text is HTML with `$...$` and `$$...$$` for math, written inside `PB.R` (`String.raw`) template literals so LaTeX backslashes need no escaping. A problem looks like:
 
 ```js
 { level: 'core', type: 'num', title: 'Short title',
@@ -345,3 +372,20 @@ Each chapter file calls `PB.addChapter({...})` with a `subject` (`physics` by de
 A chapter can also carry `big` (its plain-language opening), `figures` (interactive figures in the text: `{ s: sectionIndex, title, caption, params }`, where `params` is an explorer config) and, per section, `quizzes` (quick checks: `{ type: 'num' | 'mcq', q, answer, options, unit, tol, hints, solution }`). An explorer config can declare draggable handles with `drag: [{ plot: 0, get: (v) => [x, y], set: (v, x, y) => { ... } }]` (data coordinates of a plot) or `{ pic: true, ... }` (canvas pixels of the picture). Put `<div data-quiz="0"></div>` or `<div data-fig="0"></div>` in a section's HTML to place a quiz or figure at that spot; otherwise they go at the end of the section. Worked examples written as `<details class="example">` become Try-it quizzes when `PB.EXQ['chapter:section:index']` gives their answer.
 
 To add guided steps to a problem, call `PB.addSteps('chapter-n', [{ phase: 'understand' | 'plan' | 'do' | 'check', type: 'num' | 'mcq' | 'reveal', q, answer, options, unit, tol, explain }])`. Plain-words summaries are a list with one string per section: `PB.addPlain('chapter', [...])`. Glossary entries are `PB.addGlossary({ 'term|alias': ['definition', 'physics,chemistry'] })` (leave the subject list empty for all subjects).
+
+### Computing chapters and challenges
+
+Computing chapter files start with `const { R, K, c, QN, QM, P, T, G } = PB.csKit();`. `K(lang, src, run)` makes a highlighted code block (`run` adds a Try it button) and `c(src)` inline code; write `@{` for a JavaScript `${` and `¨` for a backtick inside raw templates. A judged challenge looks like:
+
+```js
+const ref = (input) => /* a correct solution in JavaScript */ output;
+PB.addChallenge({ id: 'cp-example', chapter: 'cp-sorting', title: 'Example', level: 'medium',  // easy | medium | hard
+  statement: R`<p>...</p>`, input: R`<p>...</p>`, output: R`<p>...</p>`,
+  samples: [T(ref)('3\n1 2 3\n')],                    // shown to the student
+  tests: [T(ref)('1\n5\n'), G(ref, (r) => bigInput)],  // hidden; G generates a large test from a seeded random r
+  hints: [R`...`], starter: { python: '...' }, solution: { python: '...', cpp: '...' },
+  timeLimit: 1, check: 'tokens' });                     // or 'exact', 'float', a number (absolute tolerance) or a function
+```
+
+and is placed in a lab with `{ sim: 'code', title, desc, params: { challenge: 'cp-example' } }`. A plain playground is `{ sim: 'code', params: { lang, langs, code, stdin } }`, with `lang: 'web'` for a live HTML page.
+
