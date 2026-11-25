@@ -1183,3 +1183,63 @@ dfn.gl:hover, dfn.gl:focus { background: rgba(32, 80, 200, .1); outline: none; }
 .gl-item { padding: 6px 0; }
 .gl-item p { margin: 2px 0 0; color: var(--ink-2, #5a6378); }
 .gl-item small { color: var(--ink-3, #8a93a8); }
+
+/* ---------- Round 7: predictions, journal, cards, raids, campaign, in the wild ---------- */
+.today.play-row { margin-top: 14px; }
+.today-card.done { opacity: .8; }
+.predict { border: 2px solid var(--accent); border-radius: 14px; padding: 16px 18px; margin: 0 0 22px; background: var(--surface); }
+.predict.right { border-color: #2e9d57; } .predict.wrong { border-color: #c9772b; }
+.predict-head { display: flex; gap: 12px; align-items: flex-start; }
+.predict-head h3 { margin: 4px 0 10px; font-size: 19px; line-height: 1.4; }
+.predict-ico { font-size: 26px; }
+.predict-opts { display: grid; gap: 8px; margin: 6px 0 10px; }
+.predict-opts .opt { text-align: left; }
+.opt-key { display: inline-block; min-width: 22px; font-family: var(--mono, monospace); font-weight: 700; color: var(--accent); }
+.predict-stakes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+.predict-note { color: var(--ink-2); display: block; margin-top: 6px; }
+.predict-progress { margin: 8px 0; }
+.tag-chip { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer; }
+.tag-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tag-chip:disabled { opacity: .45; cursor: not-allowed; }
+.jr-item { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 10px 0; background: var(--surface); }
+.jr-item.ready { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft, rgba(35,80,200,.12)); }
+.jr-item.fixed { opacity: .75; }
+.jr-top { display: flex; gap: 10px; align-items: center; }
+.jr-title { flex: 1; min-width: 0; } .jr-title small { display: block; color: var(--ink-2); }
+.jr-ready { background: var(--accent); color: #fff; }
+.jr-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0; }
+.card3-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.card3 { position: relative; border-radius: 14px; padding: 14px; min-height: 170px; border: 2px solid var(--line); background: var(--surface); display: flex; flex-direction: column; gap: 6px; }
+.card3.locked { background: repeating-linear-gradient(45deg, var(--surface), var(--surface) 8px, var(--surface-2) 8px, var(--surface-2) 16px); color: var(--ink-2); }
+.card3.got { border-color: var(--accent); }
+.card3.set-theorems.got { border-color: var(--s-maths); } .card3.set-scientists.got { border-color: var(--s-physics); } .card3.set-elements.got { border-color: var(--s-chemistry); } .card3.set-organisms.got { border-color: var(--s-biology); } .card3.set-sky.got { border-color: var(--s-astronomy); }
+.card3.foil { background: linear-gradient(135deg, rgba(255,215,120,.25), rgba(140,200,255,.25) 40%, rgba(255,160,220,.25) 70%, rgba(160,255,200,.25)); box-shadow: 0 6px 22px rgba(120,100,255,.18); }
+.card3-icon { font-size: 34px; line-height: 1; height: 40px; font-weight: 700; }
+.card3-name { font-size: 16px; }
+.card3-fact { font-size: 13.5px; line-height: 1.45; margin: 0; color: var(--ink-2); flex: 1; }
+.card3-foil { color: #b07a00; font-weight: 700; }
+.card3-quiz p { font-size: 14px; margin: 4px 0; }
+.card3-quiz .opt { display: block; width: 100%; margin: 4px 0; padding: 6px 10px; font-size: 13px; text-align: left; }
+.wild-ch { color: var(--ink-3); font-family: var(--mono, monospace); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.wild-chip { display: inline-block; margin-top: 8px; font-size: 13px; padding: 5px 11px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+.raid-allies { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin: 14px 0; }
+.raid-allies > b { grid-column: 1 / -1; }
+.ally { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; border: 1px dashed var(--line); opacity: .6; }
+.ally.on { opacity: 1; border-style: solid; border-color: var(--accent); }
+.ally span { font-size: 20px; } .ally small { display: block; color: var(--ink-2); }
+.raid-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.raid-mode .btn { margin-top: 8px; }
+.raid-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.raid-boss { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 220px; }
+.raid-boss-ico { font-size: 46px; transition: transform .2s; }
+.raid-boss-ico.hit { animation: raidHit .4s; }
+@keyframes raidHit { 30% { transform: translateX(-6px) rotate(-6deg); } 60% { transform: translateX(6px) rotate(6deg); } }
+.raid-boss-meta { flex: 1; } .raid-boss-meta small { color: var(--ink-2); }
+.raid-hp { height: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin: 4px 0; }
+.raid-hp span { display: block; height: 100%; background: linear-gradient(90deg, #d2413a, #f08a3c); transition: width .4s; }
+.raid-hearts { font-size: 24px; color: #d2413a; letter-spacing: 2px; }
+.map-region { margin: 18px 0; padding: 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); }
+.map-head { display: flex; gap: 10px; align-items: center; } .map-head h2 { margin: 0; } .map-head small { color: var(--ink-2); }
+.map-wrap { overflow-x: auto; } .map-path { width: 100%; min-width: 560px; height: auto; display: block; }
+.map-path a circle { transition: transform .15s; transform-box: fill-box; transform-origin: center; } .map-path a:hover circle { transform: scale(1.15); }
+.map-story p { margin: 6px 0 2px; font-style: italic; } .map-story small { color: var(--ink-2); }

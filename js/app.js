@@ -95,7 +95,7 @@
     const th = h('button', { class: 'icon-btn hud-theme', 'aria-label': 'Switch light or dark theme', html: isDark() ? SUN : MOON, onclick: function () {
       S().theme = isDark() ? 'light' : 'dark'; PB.save(); applyTheme(); renderHUD(); PB.emit({ type: 'theme' });
     } });
-    const gold = PB.rpg ? h('a', { class: 'hud-gold', href: '#hero', title: 'Gold: spend it in the hero shop', html: '<span class="coin">◉</span>' + PB.rpg.gold() + (PB.rpg.gems ? ' <span class="coin">💎</span>' + PB.rpg.gems() : '') }) : null;
+    const gold = PB.wallet ? h('a', { class: 'hud-gold', href: '#cards', title: 'Coins (for prediction bets) and gems', html: '<span class="coin">◉</span>' + PB.wallet.coins() + ' <span class="coin">💎</span>' + PB.wallet.gems() }) : null;
     box.append(lvl, st);
     if (gold) box.append(gold);
     box.append(th);
@@ -107,7 +107,7 @@
     const nav = $('#sidebar');
     nav.innerHTML = '';
     nav.appendChild(h('div', { class: 'rail-group', text: 'Book' }));
-    [['home', 'Dashboard'], ['adapt', 'Adaptive practice'], ['pass', 'Study Pass'], ['league', 'League'], ['hero', 'Hero & bosses'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['glossary', 'Glossary'], ['profile', 'Level & badges']].forEach(function (x) {
+    [['home', 'Dashboard'], ['adapt', 'Adaptive practice'], ['pass', 'Study Pass'], ['league', 'League'], ['map', 'Campaign map'], ['raid', 'Weekly raid'], ['cards', 'Card collection'], ['journal', 'Mistake journal'], ['wild', 'In the wild'], ['tree', 'Skill tree'], ['arena', 'Problem arena'], ['gym', 'Practice gym'], ['solver', 'Equation board'], ['formulas', 'Formula sheet'], ['glossary', 'Glossary'], ['profile', 'Level & badges']].forEach(function (x) {
       nav.appendChild(h('a', { class: 'rail-link' + (activeId === x[0] ? ' active' : ''), href: '#' + x[0] }, [h('span', { class: 'rail-num', text: '·' }), h('span', { class: 'rail-name', text: x[1] }), null]));
     });
     const sub = PB.subject(curSubject());
@@ -602,6 +602,7 @@
     } else if (tab === 'lab') {
       (ch.labs || []).forEach(function (lab) { const m = mountLab(ch, lab); content.appendChild(m.el); labStarts.push(m.start); });
       if (!(ch.labs || []).length) content.appendChild(h('p', { class: 'empty', text: 'No lab in this chapter.' }));
+      if (PB.labTabExtras) PB.labTabExtras(ch, content);
     } else if (tab === 'problems') {
       [['concept', 'Concept checks'], ['core', 'Core problems'], ['olympiad', 'Olympiad problems']].forEach(function (lv) {
         const ps = ch.problems.filter(function (p) { return p.level === lv[0]; });

@@ -189,10 +189,10 @@
 <script src="js/gym.js"></script>
 <script src="js/games.js"></script>
 <script src="js/prereqs.js"></script>
-<script src="js/rpg.js"></script>
 <script src="js/bigideas.js"></script>
 <script src="js/learn.js"></script>
 <script src="js/figures.js"></script>
+<script src="js/wallet.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/guide.js"></script>
 <script src="js/adaptive.js"></script>
@@ -204,5 +204,14 @@
 <script src="js/plain/chemistry-plain.js"></script>
 <script src="js/plain/biology-plain.js"></script>
 <script src="js/plain/astronomy-plain.js"></script>
+<script src="js/predict.js"></script>
+<script src="js/play/predictions.js"></script>
+<script src="js/play/cards-data.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/journal.js"></script>
+<script src="js/raids.js"></script>
+<script src="js/play/wild-data.js"></script>
+<script src="js/campaign.js"></script>
+<script>(function () { const ids = new Set(PB.BADGES.map(function (b) { return b.id; })); Object.keys(PB.S.badges || {}).forEach(function (k) { if (!ids.has(k)) delete PB.S.badges[k]; }); PB.save(); PB.route(); })();</script>
 </body>
 </html>

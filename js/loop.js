@@ -1,11 +1,10 @@
 /* Scibook motivation loop. Learning earns XP; XP fills the daily goal, the monthly Study Pass and the weekly
-   league; those pay out the RPG currencies that upgrade your hero, who fights the bosses unlocked by passing
-   chapters. Every milestone (goal met, star earned, tier reached, league finished) is celebrated with a reward. */
+   league; those pay out coins, gems, boosts and mystery boxes (js/wallet.js). Every milestone (goal met, star earned, tier reached, league finished) is celebrated with a reward. */
 (function () {
   'use strict';
   const PB = window.PB, h = PB.h, S = function () { return PB.S; };
-  const ICON = { gold: '◉', gems: '💎', keys: '🗝️', frags: '🧩', potions: '☕', xp: '✦', boost: '⚡' };
-  const NAME = { gold: 'gold', gems: 'gems', keys: 'keys', frags: 'egg fragments', potions: 'coffee', xp: 'XP', boost: 'Double XP boost' };
+  const ICON = { coins: '◉', gems: '💎', xp: '✦', boost: '⚡', freeze: '🧊' };
+  const NAME = { coins: 'coins', gems: 'gems', xp: 'XP', boost: 'Double XP boost', freeze: 'streak freeze' };
   const DAY = 86400000;
   function L() {
     const s = S();
@@ -22,15 +21,15 @@
   function pay(rewards, why) {
     rewards.forEach((r) => {
       if (r[0] === 'xp') PB.addXP(r[1], why);
-      else if (r[0] === 'chest') { if (PB.rpg && PB.rpg.grantChest) PB.rpg.grantChest(r[1]); }
+      else if (r[0] === 'box') { if (PB.openBox) setTimeout(() => PB.openBox(r[1], why), 400); }
       else if (r[0] === 'boost') { if (PB.grantBoost) PB.grantBoost(r[1], why); }
-      else if (r[0] === 'potions') { if (S().rpg) { S().rpg.potions = (S().rpg.potions || 0) + r[1]; PB.save(); } }
-      else if (PB.rpg) PB.rpg.give(r[0], r[1], why, true);
+      else if (r[0] === 'freeze') { const l = L(); l.freezes = Math.min(2, l.freezes + r[1]); PB.save(); }
+      else if (PB.wallet) PB.wallet.give(r[0], r[1], why, true);
     });
     PB.save();
     if (PB.renderHUD) PB.renderHUD();
   }
-  const chip = (r) => h('span', { class: 'reward-chip' }, [h('b', { text: r[0] === 'chest' ? (PB.rpg && PB.rpg.chestIcon ? PB.rpg.chestIcon(r[1]) : '🎁') : ICON[r[0]] }), h('span', { text: r[0] === 'chest' ? (PB.rpg && PB.rpg.chestName ? PB.rpg.chestName(r[1]) : r[1]) : '+' + r[1] + ' ' + NAME[r[0]] })]);
+  const chip = (r) => h('span', { class: 'reward-chip' }, [h('b', { text: r[0] === 'box' ? '🎁' : ICON[r[0]] }), h('span', { text: r[0] === 'box' ? (r[1] === 'premium' ? 'Premium mystery box' : 'Mystery box') : '+' + r[1] + ' ' + NAME[r[0]] })]);
 
   /* ---------- Reward modal and celebrations ---------- */
   const queue = [];
@@ -39,7 +38,7 @@
   function nextModal() {
     if (!queue.length) { showing = false; return; }
     // Do not interrupt a fight mid-question: wait until the battle is over or left.
-    if (document.querySelector('.battle .battle-q, .battle .skill-pick')) { showing = true; setTimeout(nextModal, 1000); return; }
+    if (document.querySelector('.raid-stage .raid-q')) { showing = true; setTimeout(nextModal, 1000); return; }
     const o = queue.shift();
     showing = true;
     const close = () => { ov.classList.add('out'); setTimeout(() => { ov.remove(); nextModal(); }, 220); };
@@ -90,8 +89,8 @@
 
   /* ---------- Daily goal and streak ---------- */
   const GOALS = [[20, 'Casual'], [60, 'Regular'], [120, 'Serious'], [200, 'Intense']];
-  const goalReward = (g) => [['gold', 40 + g], ['keys', 1], ['frags', g >= 120 ? 3 : g >= 60 ? 2 : 1]];
-  const STREAK = [[3, [['gems', 50]]], [7, [['gems', 100], ['keys', 2]]], [14, [['gems', 150], ['chest', 'premium']]], [30, [['gems', 300], ['chest', 'goldegg']]], [60, [['gems', 500], ['chest', 'premium10']]], [100, [['gems', 1000], ['chest', 'premium10']]]];
+  const goalReward = (g) => [['coins', 40 + g], ['coins', 40], ['coins', 10 * (g >= 120 ? 3 : g >= 60 ? 2 : 1)]];
+  const STREAK = [[3, [['gems', 50]]], [7, [['gems', 100], ['coins', 80]]], [14, [['gems', 150], ['box', 'premium']]], [30, [['gems', 300], ['box', 'common']]], [60, [['gems', 500], ['box', 'premium']]], [100, [['gems', 1000], ['box', 'premium']]]];
   PB.dailyGoal = () => ({ goal: L().goal, xp: todayXP(), done: !!L().goalDays[dayKey()] });
   function applyFreezes() {
     const s = S().streak, l = L();
@@ -122,9 +121,9 @@
   const season = () => dayKey().slice(0, 7);
   function seasonXP() { const p = season(); let s = 0; Object.keys(S().activity).forEach((k) => { if (k.slice(0, 7) === p) s += S().activity[k]; }); return s; }
   function tierReward(t) {
-    if (t % 10 === 0) return [['chest', t === 40 ? 'premium10' : 'premium'], ['gems', 100]];
-    if (t % 5 === 0) return [['chest', 'goldegg']];
-    return [[['gold', 150 + 10 * t]], [['keys', 1]], [['frags', 4]], [['gems', 40]], [['boost', 1]], [['gold', 250 + 10 * t], ['keys', 1]], [['frags', 6]], [['gems', 60]]][t % 8];
+    if (t % 10 === 0) return [['box', 'premium'], ['gems', 100]];
+    if (t % 5 === 0) return [['box', 'common']];
+    return [[['coins', 150 + 10 * t]], [['coins', 40]], [['coins', 10 * (4)]], [['gems', 40]], [['boost', 1]], [['coins', 250 + 10 * t], ['coins', 40]], [['coins', 10 * (6)]], [['gems', 60]]][t % 8];
   }
   function passState() { const l = L(); if (l.pass.season !== season()) { l.pass = { season: season(), claimed: {} }; } const xp = seasonXP(); return { xp: xp, tier: Math.min(TIERS, Math.floor(xp / TIER_XP)), claimed: l.pass.claimed }; }
   PB.passState = passState;
@@ -133,7 +132,7 @@
   function checkTier() { const ps = passState(); if (lastTier == null) { lastTier = ps.tier; return; } if (ps.tier > lastTier) { const t = ps.tier; lastTier = t; if (PB.toast) PB.toast('<span class="tx">Pass</span> Study Pass tier ' + t + ' reached: claim your reward', 'badge-t'); PB.celebrate(50); } }
 
   /* ---------- Chapter stars, passes and mastery ---------- */
-  const STAR_RW = { 1: [['gold', 120], ['keys', 1]], 2: [['gems', 60], ['frags', 4]], 3: [['gems', 120], ['chest', 'premium']] };
+  const STAR_RW = { 1: [['coins', 120], ['coins', 40]], 2: [['gems', 60], ['coins', 10 * (4)]], 3: [['gems', 120], ['box', 'premium']] };
   function checkChapter(ch) {
     if (!ch) return;
     const l = L(), st = PB.chapterStats(ch), had = l.stars[ch.id] || 0;
@@ -141,13 +140,13 @@
       l.stars[ch.id] = st.stars;
       for (let k = had + 1; k <= st.stars; k++) { const rw = STAR_RW[k] || STAR_RW[3]; pay(rw, 'chapter star'); PB.rewardModal({ icon: '⭐'.repeat(Math.min(3, k)), eyebrow: PB.subject(ch.subject).name + ' · ' + ch.title, title: k === 3 ? 'Three stars: chapter mastered!' : 'Star ' + k + ' of 3', text: ['', 'Every concept check solved.', 'Every core problem solved.', 'Every olympiad problem solved. Outstanding.'][k] || '', rewards: rw, big: k === 3 }); }
     }
-    if (!l.passed[ch.id] && PB.isPassed && PB.isPassed(ch)) { l.passed[ch.id] = true; pay([['keys', 1], ['gold', 80]], 'chapter passed'); if (PB.toast) PB.toast('<span class="tx">Passed</span> ' + ch.title + ': +1 key, +80 gold', 'badge-t'); }
+    if (!l.passed[ch.id] && PB.isPassed && PB.isPassed(ch)) { l.passed[ch.id] = true; pay([['coins', 120]], 'chapter passed'); if (PB.toast) PB.toast('<span class="tx">Passed</span> ' + ch.title + ': +1 key, +80 gold', 'badge-t'); }
     PB.save();
   }
   function checkMastery(chId) {
     if (!PB.mastery) return;
     const m = PB.mastery(chId), l = L(), best = l.mastery[chId] || 0;
-    [[0.5, 1, [['gems', 20]]], [0.8, 2, [['gems', 50], ['keys', 1]]]].forEach((t) => { if (m >= t[0] && best < t[1]) { l.mastery[chId] = t[1]; pay(t[2], 'mastery'); if (PB.toast) PB.toast('<span class="tx">Mastery</span> ' + PB.chapter(chId).title + ' reached ' + Math.round(t[0] * 100) + '%: ' + t[2].map((r) => ICON[r[0]] + r[1]).join(' '), 'badge-t'); } });
+    [[0.5, 1, [['gems', 20]]], [0.8, 2, [['gems', 50], ['coins', 40]]]].forEach((t) => { if (m >= t[0] && best < t[1]) { l.mastery[chId] = t[1]; pay(t[2], 'mastery'); if (PB.toast) PB.toast('<span class="tx">Mastery</span> ' + PB.chapter(chId).title + ' reached ' + Math.round(t[0] * 100) + '%: ' + t[2].map((r) => ICON[r[0]] + r[1]).join(' '), 'badge-t'); } });
   }
 
   /* ---------- Weekly league with rival study bots ---------- */
@@ -189,7 +188,7 @@
     if (rank <= 5 && tier < TIERN.length - 1) { nt = tier + 1; title = 'Promoted to the ' + TIERN[nt][0] + ' league!'; }
     else if (rank > 10 && tier > 0) { nt = tier - 1; title = 'Down to the ' + TIERN[nt][0] + ' league'; }
     else title = 'You stay in the ' + TIERN[tier][0] + ' league';
-    if (rank === 1) rw = [['gems', 150 + 30 * tier], ['keys', 2], ['boost', 1]]; else if (rank === 2) rw = [['gems', 100 + 20 * tier], ['keys', 1], ['boost', 1]]; else if (rank === 3) rw = [['gems', 60 + 15 * tier]]; else if (rank <= 5) rw = [['gold', 200]];
+    if (rank === 1) rw = [['gems', 150 + 30 * tier], ['coins', 80], ['boost', 1]]; else if (rank === 2) rw = [['gems', 100 + 20 * tier], ['coins', 40], ['boost', 1]]; else if (rank === 3) rw = [['gems', 60 + 15 * tier]]; else if (rank <= 5) rw = [['coins', 200]];
     l.league.tier = nt; l.league.best = Math.max(l.league.best || 0, nt);
     if (rw.length) pay(rw, 'league');
     PB.save();
@@ -208,7 +207,7 @@
     }
     if (ev.type === 'answer' && ev.p) setTimeout(() => checkMastery(ev.p.chapter), 0);
     if (ev.type === 'drill' && ev.chapter) setTimeout(() => checkMastery(ev.chapter), 0);
-    if (ev.type === 'levelup') PB.rewardModal({ icon: '⬆️', eyebrow: 'Level up', title: 'Level ' + ev.level + ': ' + ev.title, text: 'Your hero grows stronger with every level: more attack and HP.', big: true });
+    if (ev.type === 'levelup') PB.rewardModal({ icon: '⬆️', eyebrow: 'Level up', title: 'Level ' + ev.level + ': ' + ev.title, text: 'A new title and a level-up reward.', rewards: [['gems', 50], ['box', 'common']], big: true }) || pay([['gems', 50], ['box', 'common']], 'level up');
   });
   // Seed the star record for existing saves so old stars do not all pay out at once.
   (function seed() { const l = L(); if (!l.seeded) { PB.chapters.forEach((c) => { const st = PB.chapterStats(c); if (st.stars) l.stars[c.id] = st.stars; if (PB.isPassed && PB.isPassed(c)) l.passed[c.id] = true; }); l.seeded = true; PB.save(); } })();
@@ -245,7 +244,7 @@
     const dp = PB.dailyProblem && PB.dailyProblem();
     if (dp && !S().solved[dp.id]) plan.push(['⚡', 'Today’s ×2 challenge: ' + (dp.title || 'problem'), '+' + dp.points * 2 + ' XP, +1 key', '#ch-' + dp.chapter + '--problems']);
     if (unclaimed) plan.push(['🎁', 'Claim ' + unclaimed + ' Study Pass reward' + (unclaimed > 1 ? 's' : ''), 'free loot', '#pass']);
-    else if (PB.rpg && PB.rpg.hasHero && PB.rpg.hasHero()) plan.push(['⚔️', 'Spend your loot: open chests, merge gear, fight a boss', 'power up', '#hero']);
+    else if (PB.raidAvailable && PB.raidAvailable()) plan.push(['🐉', 'This week’s raid is waiting', 'gems + box', '#raid']);
     const pl = h('div', { class: 'plan' }, [h('div', { class: 'eyebrow', text: 'Today’s plan' })]);
     plan.slice(0, 4).forEach((p) => pl.appendChild(h('a', { class: 'plan-row', href: p[3], onclick: p[4] || null }, [h('span', { class: 'plan-ico', text: p[0] }), h('span', { class: 'plan-txt', text: p[1] }), h('span', { class: 'plan-rw', text: p[2] }), h('span', { class: 'plan-go', text: '→' })])));
     wrap.appendChild(pl);
@@ -257,7 +256,7 @@
     const wrap = h('div', { class: 'wrap-wide' });
     wrap.appendChild(h('div', { class: 'eyebrow', text: 'Season ' + season() + ' · resets on the 1st' }));
     wrap.appendChild(h('h1', { text: 'Study Pass', style: 'font-size:34px;margin-top:6px' }));
-    wrap.appendChild(h('p', { class: 'lede', text: 'Every ' + TIER_XP + ' XP you earn this month unlocks a tier of free rewards for your hero: gold, keys, gems, egg fragments, coffee, eggs and chests. All XP counts: reading, labs, problems, quizzes, drills and quests.' }));
+    wrap.appendChild(h('p', { class: 'lede', text: 'Every ' + TIER_XP + ' XP you earn this month unlocks a tier of free rewards: coins, gems, Double XP boosts and mystery boxes, with a box every fifth tier and a premium box every tenth. All XP counts: reading, labs, problems, quizzes, drills and quests.' }));
     const pct = Math.min(1, ps.xp / (TIER_XP * TIERS));
     wrap.appendChild(h('div', { class: 'pass-head' }, [h('b', { text: 'Tier ' + ps.tier + ' / ' + TIERS }), h('div', { class: 'xpbar lg', html: '<span style="width:' + Math.round(pct * 100) + '%"></span>' }), h('small', { text: ps.xp + ' XP this month' })]));
     const unclaimed = []; for (let t = 1; t <= ps.tier; t++) if (!ps.claimed[t]) unclaimed.push(t);
@@ -273,14 +272,14 @@
     }
     wrap.appendChild(grid);
     // Settings: daily goal and streak freezes.
-    const set = h('section', { class: 'lock-box' }, [h('h2', { text: 'Daily goal' }), h('p', { text: 'Pick a goal you can keep. Reaching it pays gold, a key and egg fragments, and keeps your streak.' })]);
+    const set = h('section', { class: 'lock-box' }, [h('h2', { text: 'Daily goal' }), h('p', { text: 'Pick a goal you can keep. Reaching it pays coins and keeps your streak.' })]);
     const seg = h('div', { class: 'seg', role: 'group' });
     GOALS.forEach((gg) => seg.appendChild(h('button', { type: 'button', class: l.goal === gg[0] ? 'on' : '', text: gg[1] + ' · ' + gg[0] + ' XP', onclick: () => { l.goal = gg[0]; PB.save(); if (PB.renderHUD) PB.renderHUD(); viewPass(); } })));
     set.appendChild(seg);
-    const gemsNow = PB.rpg ? PB.rpg.gems() : 0;
+    const gemsNow = PB.wallet ? PB.wallet.gems() : 0;
     set.appendChild(h('h2', { text: 'Streak freeze', style: 'margin-top:16px' }));
     set.appendChild(h('p', { text: 'A freeze is used automatically if you miss a day, so your streak survives. You can hold two. You have ' + l.freezes + '.' }));
-    set.appendChild(h('button', { class: 'btn', type: 'button', disabled: l.freezes >= 2 || gemsNow < 200, text: 'Buy a freeze: 💎 200', onclick: () => { if (l.freezes >= 2 || !S().rpg || S().rpg.gems < 200) return; S().rpg.gems -= 200; l.freezes++; PB.save(); PB.renderHUD(); viewPass(); } }));
+    set.appendChild(h('button', { class: 'btn', type: 'button', disabled: l.freezes >= 2 || gemsNow < 200, text: 'Buy a freeze: 💎 200', onclick: () => { if (l.freezes >= 2 || !PB.wallet || !PB.wallet.spend('gems', 200)) return; l.freezes++; PB.save(); PB.renderHUD(); viewPass(); } }));
     const ms = h('div', { class: 'streak-row' });
     STREAK.forEach((m) => ms.appendChild(h('div', { class: 'streak-ms' + (l.streakPaid[m[0]] ? ' got' : '') }, [h('b', { text: '🔥 ' + m[0] }), h('div', {}, m[1].map(chip))])));
     set.appendChild(h('h2', { text: 'Streak milestones', style: 'margin-top:16px' }));

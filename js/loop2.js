@@ -17,7 +17,7 @@
     return l;
   }
   const today = () => PB.today();
-  const give = (k, n, why) => { if (PB.rpg) PB.rpg.give(k, n, why, true); };
+  const give = (k, n, why) => { if (PB.wallet) PB.wallet.give(k, n, why, true); };
 
   /* ---------- Double XP boosts ---------- */
   PB.boostActive = () => (L2().boostUntil || 0) > Date.now();
@@ -87,7 +87,7 @@
     if (l.monthly[m] || monthXP() < MONTH_XP) return;
     l.monthly[m] = Date.now(); PB.save();
     give('gems', 150, 'monthly challenge');
-    if (PB.rpg && PB.rpg.grantChest) PB.rpg.grantChest('premium');
+    if (PB.openBox) setTimeout(() => PB.openBox('premium', 'monthly challenge'), 600);
     if (PB.rewardModal) PB.rewardModal({ icon: '📅', eyebrow: 'Monthly challenge complete', title: monthName(m) + ' badge earned', text: 'You earned ' + MONTH_XP + ' XP this month. The badge stays in your collection on the Level & badges page.', rewards: [['gems', 150], ['chest', 'premium']], big: true });
   }
 
@@ -143,11 +143,11 @@
     function done() {
       const pass = right >= CH_N, l = L2(), first = pass && !l.crowns[chId];
       if (pass) { l.crowns[chId] = Date.now(); PB.save(); checkTiers(); }
-      if (first) { give('gems', 100, 'mastery'); give('keys', 1, 'mastery'); }
+      if (first) { give('gems', 100, 'mastery'); give('coins', 40, 'mastery'); }
       stage.appendChild(h('section', { class: 'session-end' + (pass ? ' perfect' : '') }, [
         h('div', { class: 'session-ico', text: pass ? '👑' : '💪' }),
         h('h2', { text: pass ? 'Chapter mastered!' : right + ' of ' + CH_N + ': not quite yet' }),
-        h('p', { text: pass ? (first ? 'Crown earned: +100 gems and a key. ' : '') + 'This chapter now shows as Mastered.' : 'Mastery needs all ' + CH_N + '. Review what you missed (adaptive practice is a good warm-up), then try again.' }),
+        h('p', { text: pass ? (first ? 'Crown earned: +100 gems and 40 coins. ' : '') + 'This chapter now shows as Mastered.' : 'Mastery needs all ' + CH_N + '. Review what you missed (adaptive practice is a good warm-up), then try again.' }),
         h('div', { class: 'hero-cta' }, [h('button', { class: 'btn primary', type: 'button', text: pass ? 'Do it again' : 'Retry now', onclick: () => viewChallenge(chId) }), h('a', { class: 'btn', href: '#adapt-' + chId, text: 'Adaptive practice' }), h('a', { class: 'btn ghost', href: '#ch-' + chId, text: 'Back to the chapter' })])
       ]));
       if (pass && PB.celebrate) PB.celebrate(150);
