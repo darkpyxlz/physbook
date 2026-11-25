@@ -621,15 +621,26 @@
       if (!(ch.labs || []).length) content.appendChild(h('p', { class: 'empty', text: 'No lab in this chapter.' }));
       if (PB.labTabExtras) PB.labTabExtras(ch, content);
     } else if (tab === 'problems') {
-      [['concept', 'Concept checks'], ['core', 'Core problems'], ['olympiad', 'Olympiad problems']].forEach(function (lv) {
-        const ps = ch.problems.filter(function (p) { return p.level === lv[0]; });
-        if (!ps.length) return;
-        const s = st[lv[0]];
-        content.appendChild(h('div', { class: 'section-head', style: 'margin-top:8px' }, [h('h2', { text: lv[1] }), h('p', { text: s.solved + ' of ' + s.total + ' solved' })]));
-        const list = h('div', { class: 'prob-list' });
-        ps.forEach(function (p) { list.appendChild(problemCard(p, { onChange: function () { renderSidebar(ch.id); } })); });
-        content.appendChild(list);
-      });
+      const end = PB.endProblems ? PB.endProblems(ch) : ch.problems;
+      const endSolved = end.filter(function (p) { return S().solved[p.id]; }).length;
+      content.appendChild(h('div', { class: 'section-head', style: 'margin-top:8px' }, [h('h2', { text: 'End-of-chapter problems' }), h('p', { text: endSolved + ' of ' + end.length + ' solved · the hardest problems, drawing on the whole chapter' })]));
+      const list = h('div', { class: 'prob-list' });
+      end.forEach(function (p) { list.appendChild(problemCard(p, { onChange: function () { renderSidebar(ch.id); } })); });
+      content.appendChild(list);
+      const place = PB.checkPlacement ? PB.checkPlacement(ch) : [];
+      const inText = place.reduce(function (a, l) { return a + l.length; }, 0);
+      if (inText) {
+        const box = h('section', { class: 'in-text-index' }, [h('h3', { text: 'Practice in the text' }), h('p')]);
+        box.lastChild.textContent = inText + ' more problems sit inside the sections they practise' + (PB.isPassed(ch) ? '.' : '; passing the chapter needs ' + PB.passNeeds(ch).join(' and ') + '.');
+        const ol = h('ol');
+        place.forEach(function (l, i) {
+          if (!l.length) return;
+          const done = l.filter(function (p) { return S().solved[p.id]; }).length;
+          ol.appendChild(h('li', { value: String(i + 1) }, [h('a', { href: '#ch-' + ch.id, onclick: function () { PB.pendingSection = i; }, html: ch.sections[i].title }), h('small', { text: ' · ' + done + ' / ' + l.length + ' solved · ' + ['concept', 'core', 'olympiad'].map(function (lv) { const k = l.filter(function (p) { return p.level === lv; }).length; return k ? k + ' ' + lv : ''; }).filter(Boolean).join(', ') })]));
+        });
+        box.appendChild(ol);
+        content.appendChild(box);
+      }
     } else if (tab === 'formulas') {
       content.appendChild(formulaBlock(ch, false));
     }

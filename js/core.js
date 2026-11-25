@@ -53,6 +53,41 @@
     });
   };
   // Authored guided steps for a problem (see js/guide.js).
+  /* Lengthen a chapter without changing its section numbering (saved progress is keyed by section index):
+     spec.sections = { i: { html, quizzes } } appends to existing section i (data-quiz="k" counts from 0 within the
+     extension); spec.add = [{ title, html, quizzes, plain }] appends new sections at the end; spec.end lists the
+     problem numbers kept as end-of-chapter problems (otherwise the hardest six are kept). */
+  PB.expand = function (chId, spec) {
+    const ch = PB.chapter(chId);
+    if (!ch) { console.warn('expand: no chapter ' + chId); return; }
+    const extend = function (sec, part) {
+      const off = (sec.quizzes || []).length;
+      sec.html += (part.html || '').replace(/data-quiz="(\d+)"/g, function (m, k) { return 'data-quiz="' + (off + +k) + '"'; });
+      if (part.quizzes) sec.quizzes = (sec.quizzes || []).concat(part.quizzes);
+    };
+    Object.keys(spec.sections || {}).forEach(function (i) { if (ch.sections[i]) extend(ch.sections[i], spec.sections[i]); else console.warn('expand: no section ' + i + ' in ' + chId); });
+    (spec.add || []).forEach(function (s) {
+      ch.sections.push({ title: s.title, html: s.html || '', quizzes: s.quizzes || [] });
+      if (s.plain) { ch.plainExtra = ch.plainExtra || {}; ch.plainExtra[ch.sections.length - 1] = s.plain; }
+    });
+    if (spec.end) ch.endSet = spec.end;
+    if (spec.big) ch.big = spec.big;
+  };
+  // The end-of-chapter problems: the chapter's own choice, or its hardest six (olympiad first, then the last core ones).
+  PB.endProblems = function (ch) {
+    if (ch._end) return ch._end;
+    let out;
+    if (ch.endSet) out = ch.problems.filter(function (p) { return ch.endSet.indexOf(p.num) >= 0; });
+    else {
+      const oly = ch.problems.filter(function (p) { return p.level === 'olympiad'; }).slice(-3);
+      const core = ch.problems.filter(function (p) { return p.level === 'core'; });
+      out = oly.concat(core.slice(-(6 - oly.length)));
+      if (out.length < 6) out = out.concat(oly.length < 3 ? ch.problems.filter(function (p) { return p.level === 'olympiad' && out.indexOf(p) < 0; }) : []).slice(0, 6);
+    }
+    out.sort(function (a, b) { return a.num - b.num; });
+    return (ch._end = out);
+  };
+  PB.isEndProblem = function (p) { return PB.endProblems(PB.chapter(p.chapter)).indexOf(p) >= 0; };
   PB.addSteps = function (pid, steps) {
     const ch = PB.chapter(pid.replace(/-\d+$/, ''));
     const p = ch && ch.problems.find(function (q) { return q.id === pid; });
