@@ -158,6 +158,7 @@ Labs include a function transformer, an ε–δ zoom, secant-to-tangent, Newton'
 - **Books**: the 36 books (the parts of each subject, which follow the textbooks' units, such as Mechanics or Campbell's The Cell) are short modular courses of 2–10 modules. The **Library** (`#library`) lists them, each has a page (`#book-<id>`), and the header and sidebar navigate by book.
 - **Calculus-based physics**: physics modules need the maths they use (`js/tree.js`): Kinematics and Newton's laws need derivatives; energy, momentum, rotation, gravitation, fluids, thermodynamics and electrostatics need integrals; oscillations, RC circuits and quantum need differential equations; waves and analytical mechanics need several-variable calculus; magnetism and relativity need vectors and matrices; induction and quantum need complex numbers. Chemical kinetics needs integrals and Kepler's laws need derivatives.
 - Modules unlock Duolingo-style from their prerequisites (`js/prereqs.js`, plus the maths links in `js/tree.js`); a module you have already worked in always stays open. **Test out**: 4 of 5 drills from the missing prerequisites opens a module for good. Free roaming can be switched on in Level & badges.
+- **Search** (`js/search.js`): the magnifier in the header, the phone menu, `/` or Ctrl/Cmd + K opens a search box over chapters, section titles, labs, textbook chapters ("Campbell 21" or "Young Freedman 41" jumps to the module that teaches it), glossary terms and the main pages. Results are ranked by where the words match (title starts first) and tolerate plural and singular forms; ↑ ↓ and Enter open a result, and a section result scrolls straight to that section.
 
 ## Play
 
@@ -455,6 +456,7 @@ js/figures.js         interactive figures inside the text of the science chapter
 js/adaptive.js        mastery model, adaptive practice and spaced review, #adapt
 js/loop.js            daily goal, streaks and freezes, chapter rewards, reward window, #goal
 js/tree.js            the unified skill tree dashboard, books, library, #home, #library, #book-<id>
+js/search.js          site search (header button, / or Ctrl+K): chapters, sections, labs, textbook chapters, terms, pages
 js/guide.js            guided step-by-step solving (Pólya phases, auto and authored steps)
 js/steps/*.js          hand-written guided steps for the first core problem of every chapter
 js/loop2.js            combos, Double XP boosts, mastery levels and challenges, monthly challenge, achievements, personal bests, nudges, welcome

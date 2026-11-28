@@ -224,11 +224,11 @@
       }
       charges.forEach((c) => { U.dot(ctx, c.x, c.y, 8 + 2 * Math.abs(c.q), c.q > 0 ? C.rust : C.accent, C.surface); U.text(ctx, c.q > 0 ? '+' : '−', c.x, c.y + 4.5, '#fff', U.ui(13, 800), 'center'); });
       if (!charges.length) U.text(ctx, 'Click anywhere to place a charge.', cv.w / 2, cv.h / 2, C.ink2, U.ui(14), 'center');
-      img = ctx.getImageData(0, 0, cv.el.width, cv.el.height);
+      img = cv.snap();
       dirty = false;
     }
     api.loop(() => {
-      if (dirty) render(); else if (img) cv.ctx.putImageData(img, 0, 0);
+      if (dirty || !img || !cv.paste()) render();
       if (probe && charges.length) {
         const C = api.colors(), E = field(probe.x, probe.y), m = Math.hypot(E[0], E[1]);
         U.arrow(cv.ctx, probe.x, probe.y, probe.x + (E[0] / m) * 26, probe.y + (E[1] / m) * 26, C.points, 2.5, 8);

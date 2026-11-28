@@ -131,6 +131,9 @@
     const nav = $('#sidebar');
     nav.innerHTML = '';
     const link = function (id, mark, name, extra) { return h('a', { class: 'rail-link' + (activeId === id ? ' active' : ''), href: '#' + id }, [h('span', { class: 'rail-num', text: mark }), h('span', { class: 'rail-name', text: name }), extra || null]); };
+    // Phones hide the header wallet and search, so the drawer carries them.
+    if (PB.wallet) nav.appendChild(h('a', { class: 'rail-wallet', href: '#garden', html: '◉ ' + PB.wallet.coins() + ' &nbsp; 💎 ' + PB.wallet.gems() + (PB.garden ? ' &nbsp; 💧 ' + PB.garden.water() : '') + ' <small>garden</small>' }));
+    if (PB.openSearch) nav.appendChild(h('button', { class: 'rail-link rail-search', type: 'button', onclick: function () { setDrawer(false); PB.openSearch(); } }, [h('span', { class: 'rail-num', text: '🔍' }), h('span', { class: 'rail-name', text: 'Search' })]));
     nav.appendChild(h('div', { class: 'rail-group', text: 'Learn' }));
     [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['textbooks', '📘', 'Textbooks'], ['adapt', '🎯', 'Adaptive practice'], ['gym', '🏋', 'Practice gym'], ['arena', '⚔', 'Problem arena'], ['journal', '📓', 'Mistake journal']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     nav.appendChild(h('div', { class: 'rail-group', text: 'Collect' }));
@@ -339,6 +342,11 @@
         stage.appendChild(c);
         const ctx = c.getContext('2d');
         const obj = { el: c, ctx: ctx, w: 0, h: 0, aspect: aspect || 0.6, onResize: null };
+        // Keep a copy of a slow static layer and paint it back each frame. A canvas-to-canvas copy stays on the
+        // GPU, unlike getImageData/putImageData, which forces a slow read back from the graphics card.
+        let snapC = null;
+        obj.snap = function () { snapC = snapC || document.createElement('canvas'); snapC.width = c.width; snapC.height = c.height; snapC.getContext('2d').drawImage(c, 0, 0); return snapC; };
+        obj.paste = function () { if (!snapC || snapC.width !== c.width || snapC.height !== c.height) return false; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, c.width, c.height); ctx.drawImage(snapC, 0, 0); ctx.restore(); return true; };
         function size() {
           const w = stage.clientWidth || 600;
           const hh = Math.max(minH || 260, Math.round(w * obj.aspect));
