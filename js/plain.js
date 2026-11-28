@@ -109,7 +109,7 @@
     // Glossary runs on the authored prose before quizzes, figures and checks are added.
     if (prefs().on !== false) { const body = secEl.children[1]; if (body) linkTerms(body, ch.subject); }
     if (prevEnhance) prevEnhance(ch, i, secEl, starts);
-    const plain = (PB.PLAIN[ch.id] || [])[i];
+    const plain = (PB.PLAIN[ch.id] || [])[i] || (ch.plainExtra || {})[i];
     if (!plain) return;
     if (prefs().on !== false) {
       const box = h('div', { class: 'plain-box subj-' + ch.subject }, [h('div', { class: 'plain-ico', text: '🗣️' }), h('div', {}, [h('div', { class: 'eyebrow', text: 'In plain words' }), h('p', { html: plain })])]);

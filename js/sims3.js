@@ -64,10 +64,10 @@
         U.arrow(ctx, x - (b[0] / m) * L, y + (b[1] / m) * L, x + (b[0] / m) * L, y - (b[1] / m) * L, U.alpha(C.accent, a), 1.4, 5);
       }
       wires.forEach((w) => { U.dot(ctx, w.x, w.y, 9, w.I > 0 ? C.rust : C.teal, C.surface); U.text(ctx, w.I > 0 ? '•' : '×', w.x, w.y + 5, '#fff', U.ui(15, 800), 'center'); });
-      img = ctx.getImageData(0, 0, cv.el.width, cv.el.height); dirty = false;
+      img = cv.snap(); dirty = false;
     }
     api.loop(() => {
-      if (dirty) render(); else if (img) cv.ctx.putImageData(img, 0, 0);
+      if (dirty || !img || !cv.paste()) render();
       if (probe) { const b = B(probe.x, probe.y); U.dot(cv.ctx, probe.x, probe.y, 4, api.colors().points); out([['|B| at pointer', (Math.hypot(b[0], b[1]) * 1000).toFixed(2) + ' (rel.)'], ['wires', String(wires.length)], ['symbols', '• out of page, × into page']]); }
       else out([['wires', String(wires.length)], ['symbols', '• current out of page, × into page'], ['tip', 'hover to probe |B|']]);
     });

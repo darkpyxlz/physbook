@@ -164,17 +164,21 @@
     secW.forEach(function (ws) { new Set(ws).forEach(function (w) { df[w] = (df[w] || 0) + 1; }); });
     const n = ch.sections.length, out = ch.sections.map(function () { return []; });
     const tf = secW.map(function (ws) { const m = {}; ws.forEach(function (w) { m[w] = (m[w] || 0) + 1; }); return m; });
+    // Every problem except the end-of-chapter set is worked into the text, after the section that explains it.
+    // Sections that already hold many problems are slightly penalised, so practice is spread through the chapter.
+    const end = PB.endProblems ? PB.endProblems(ch) : [];
     ch.problems.forEach(function (p) {
-      if (p.level !== 'concept') return;
+      if (end.indexOf(p) >= 0) return;
+      if (p.sec != null && out[p.sec]) { out[p.sec].push(p); return; }
       const pw = new Set(words(p.title + ' ' + p.q + ' ' + (p.options || []).join(' ') + ' ' + p.solution));
-      let best = n - 1, bs = -1;
-      secW.forEach(function (_, i) {
-        let s = 0;
-        pw.forEach(function (w) { if (tf[i][w]) s += Math.log(1 + tf[i][w]) * Math.log(1 + n / df[w]); });
-        if (s > bs) { bs = s; best = i; }
-      });
+      const sc = secW.map(function (_, i) { let s = 0; pw.forEach(function (w) { if (tf[i][w]) s += Math.log(1 + tf[i][w]) * Math.log(1 + n / df[w]); }); return s; });
+      const mx = Math.max.apply(null, sc) || 1;
+      let best = n - 1, bs = -Infinity;
+      sc.forEach(function (s, i) { const v = s / mx - 0.08 * out[i].length; if (v > bs) { bs = v; best = i; } });
       out[best].push(p);
     });
+    const rank = { concept: 0, core: 1, olympiad: 2 };
+    out.forEach(function (list) { list.sort(function (a, b) { return rank[a.level] - rank[b.level] || a.num - b.num; }); });
     return (placeCache[ch.id] = out);
   };
   // The section that best explains a problem (used by adaptive practice for "revisit" links).
@@ -213,7 +217,7 @@
     // 4. Concept checks from the problem set, placed after the section they test.
     const checks = PB.checkPlacement(ch)[i] || [];
     if (checks.length && PB.problemCard) {
-      const box = h('div', { class: 'inline-checks' }, [h('div', { class: 'inline-checks-head' }, [h('span', { class: 'quiz-badge', text: '✓' }), h('b', { text: 'Check your understanding' }), h('small', { text: checks.length + ' scored question' + (checks.length > 1 ? 's' : '') + ' from this chapter’s concept checks' })])]);
+      const box = h('div', { class: 'inline-checks' }, [h('div', { class: 'inline-checks-head' }, [h('span', { class: 'quiz-badge', text: '✓' }), h('b', { text: checks.some(function (p) { return p.level !== 'concept'; }) ? 'Practice' : 'Check your understanding' }), h('small', { text: checks.length + ' scored question' + (checks.length > 1 ? 's' : '') + ' from this chapter’s concept checks' })])]);
       checks.forEach(function (p) { box.appendChild(PB.problemCard(p, { compact: true })); });
       secEl.appendChild(box);
     }
@@ -232,7 +236,7 @@
         grid.appendChild(h('div', { class: 'refresher-card subj-' + c.subject }, [
           h('a', { href: '#ch-' + c.id, text: PB.subject(c.subject).name + ' · ' + c.title }),
           (c.big || (PB.BIG || {})[c.id]) ? h('p', { html: c.big || PB.BIG[c.id] }) : null,
-          fs.length ? h('div', { class: 'formula-list mini' }, fs.map(function (f) { return h('div', { class: 'formula' }, [h('span', { html: f[0] }), h('div', { class: 'm', html: '$' + f[1] + '$' })]); })) : null,
+          fs.length ? h('div', { class: 'formula-list mini' }, fs.map(function (f) { return h('div', { class: 'formula' }, [h('span', { html: f[0] }), f[2] ? h('pre', { class: 'm code-m', 'data-lang': f[2], text: f[1] }) : h('div', { class: 'm', html: '$' + f[1] + '$' })]); })) : null,
           h('small', { text: PB.isPassed && PB.isPassed(c) ? '✓ passed' : 'not passed yet' })
         ]));
       });

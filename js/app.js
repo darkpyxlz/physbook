@@ -36,15 +36,27 @@
     if (!el.isConnected) { requestAnimationFrame(function () { if (el.isConnected) typeset(el); }); return; }
     if (mjReady && window.MathJax && MathJax.typesetPromise) {
       // Queue typesetting: overlapping MathJax runs on the same nodes can leave formulas unrendered.
-      mjChain = mjChain.then(function () { if (el.isConnected) return MathJax.typesetPromise([el]); }).catch(function (e) { console.warn('MathJax', e, (el.className || el.tagName) + ': ' + (el.textContent || '').slice(0, 120)); });
+      mjChain = mjChain.then(function () { if (el.isConnected) return MathJax.typesetPromise([el]).then(function () { fitMath(el); }); }).catch(function (e) { console.warn('MathJax', e, (el.className || el.tagName) + ': ' + (el.textContent || '').slice(0, 120)); });
     } else mjQueue.push(el);
   }
+  // Inline formulas wider than their column (common on phones) become their own scrollable line,
+  // so the page itself never scrolls sideways.
+  function fitMath(root) {
+    (root && root.querySelectorAll ? root : document).querySelectorAll('mjx-container:not([display="true"])').forEach(function (c) {
+      const p = c.parentElement;
+      if (!p) return;
+      c.classList.remove('mjx-wide');
+      if (c.getBoundingClientRect().width > p.clientWidth + 1) c.classList.add('mjx-wide');
+    });
+  }
+  let fitTimer = null;
+  window.addEventListener('resize', function () { clearTimeout(fitTimer); fitTimer = setTimeout(function () { fitMath(document.getElementById('main')); }, 250); });
   document.addEventListener('mathjax-ready', function () {
     mjReady = true;
     const items = mjQueue.splice(0).filter(function (el) { return el.isConnected; });
     // Keep only the outermost elements: typesetting a node and its ancestor in one call processes the same formulas twice.
     const roots = items.filter(function (el, i) { return items.indexOf(el) === i && !items.some(function (o) { return o !== el && o.contains(el); }); });
-    if (roots.length) mjChain = mjChain.then(function () { return MathJax.typesetPromise(roots); }).catch(function (e) { console.warn('MathJax', e); });
+    if (roots.length) mjChain = mjChain.then(function () { return MathJax.typesetPromise(roots).then(function () { roots.forEach(fitMath); }); }).catch(function (e) { console.warn('MathJax', e); });
   });
 
   /* ---------- Theme ---------- */
@@ -87,7 +99,7 @@
     if (!nav) return;
     nav.innerHTML = '';
     const cur = S().lastChapter && PB.chapter(S().lastChapter), bk = cur && PB.bookOf ? PB.bookOf(cur) : null;
-    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['code', '💻', 'Code lab'], ['cards', '🃏', 'Collections']].forEach(function (t) {
+    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['code', '💻', 'Code lab'], ['garden', '🌻', 'Garden'], ['cards', '🃏', 'Collections']].forEach(function (t) {
       nav.appendChild(h('a', { class: 'subj-tab' + (currentActive === t[0] ? ' active' : ''), href: '#' + t[0] }, [h('span', { class: 'subj-mark', text: t[1] }), h('span', { class: 'subj-name', text: t[2] })]));
     });
     if (bk) nav.appendChild(h('a', { class: 'subj-tab subj-' + bk.subject + (currentActive === 'book-' + bk.id || (cur && currentActive === cur.id) ? ' active' : ''), href: '#book-' + bk.id }, [h('span', { class: 'subj-mark', text: bk.icon }), h('span', { class: 'subj-name', text: bk.title })]));
@@ -107,7 +119,7 @@
     const th = h('button', { class: 'icon-btn hud-theme', 'aria-label': 'Switch light or dark theme', html: isDark() ? SUN : MOON, onclick: function () {
       S().theme = isDark() ? 'light' : 'dark'; PB.save(); applyTheme(); renderHUD(); PB.emit({ type: 'theme' });
     } });
-    const gold = PB.wallet ? h('a', { class: 'hud-gold', href: '#cards', title: 'Coins (for prediction bets) and gems', html: '<span class="coin">◉</span>' + PB.wallet.coins() + ' <span class="coin">💎</span>' + PB.wallet.gems() }) : null;
+    const gold = PB.wallet ? h('a', { class: 'hud-gold', href: '#garden', title: 'Coins (spend them in the science garden), gems, and garden water (earned by solving problems)', html: '<span class="coin">◉</span>' + PB.wallet.coins() + ' <span class="coin">💎</span>' + PB.wallet.gems() + (PB.garden ? ' <span class="coin hud-water">💧</span>' + PB.garden.water() : '') }) : null;
     box.append(lvl, st);
     if (gold) box.append(gold);
     box.append(th);
@@ -119,10 +131,13 @@
     const nav = $('#sidebar');
     nav.innerHTML = '';
     const link = function (id, mark, name, extra) { return h('a', { class: 'rail-link' + (activeId === id ? ' active' : ''), href: '#' + id }, [h('span', { class: 'rail-num', text: mark }), h('span', { class: 'rail-name', text: name }), extra || null]); };
+    // Phones hide the header wallet and search, so the drawer carries them.
+    if (PB.wallet) nav.appendChild(h('a', { class: 'rail-wallet', href: '#garden', html: '◉ ' + PB.wallet.coins() + ' &nbsp; 💎 ' + PB.wallet.gems() + (PB.garden ? ' &nbsp; 💧 ' + PB.garden.water() : '') + ' <small>garden</small>' }));
+    if (PB.openSearch) nav.appendChild(h('button', { class: 'rail-link rail-search', type: 'button', onclick: function () { setDrawer(false); PB.openSearch(); } }, [h('span', { class: 'rail-num', text: '🔍' }), h('span', { class: 'rail-name', text: 'Search' })]));
     nav.appendChild(h('div', { class: 'rail-group', text: 'Learn' }));
-    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['adapt', '🎯', 'Adaptive practice'], ['gym', '🏋', 'Practice gym'], ['arena', '⚔', 'Problem arena'], ['journal', '📓', 'Mistake journal']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
+    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['textbooks', '📘', 'Textbooks'], ['adapt', '🎯', 'Adaptive practice'], ['gym', '🏋', 'Practice gym'], ['arena', '⚔', 'Problem arena'], ['journal', '📓', 'Mistake journal']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     nav.appendChild(h('div', { class: 'rail-group', text: 'Collect' }));
-    [['cards', '🃏', 'Collections'], ['wild', '🌍', 'In the wild'], ['goal', '🔥', 'Daily goal & streak'], ['profile', '🏅', 'Level & badges']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
+    [['garden', '🌻', 'Science garden'], ['cards', '🃏', 'Collections'], ['wild', '🌍', 'In the wild'], ['goal', '🔥', 'Daily goal & streak'], ['profile', '🏅', 'Level & badges']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     nav.appendChild(h('div', { class: 'rail-group', text: 'Tools' }));
     [['code', '💻', 'Code lab'], ['solver', '∑', 'Equation board'], ['formulas', 'ƒ', 'Formula sheet'], ['glossary', 'Aa', 'Glossary']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     const cur = PB.chapter(activeId) || (S().lastChapter && PB.chapter(S().lastChapter));
@@ -327,6 +342,11 @@
         stage.appendChild(c);
         const ctx = c.getContext('2d');
         const obj = { el: c, ctx: ctx, w: 0, h: 0, aspect: aspect || 0.6, onResize: null };
+        // Keep a copy of a slow static layer and paint it back each frame. A canvas-to-canvas copy stays on the
+        // GPU, unlike getImageData/putImageData, which forces a slow read back from the graphics card.
+        let snapC = null;
+        obj.snap = function () { snapC = snapC || document.createElement('canvas'); snapC.width = c.width; snapC.height = c.height; snapC.getContext('2d').drawImage(c, 0, 0); return snapC; };
+        obj.paste = function () { if (!snapC || snapC.width !== c.width || snapC.height !== c.height) return false; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, c.width, c.height); ctx.drawImage(snapC, 0, 0); ctx.restore(); return true; };
         function size() {
           const w = stage.clientWidth || 600;
           const hh = Math.max(minH || 260, Math.round(w * obj.aspect));
@@ -621,15 +641,26 @@
       if (!(ch.labs || []).length) content.appendChild(h('p', { class: 'empty', text: 'No lab in this chapter.' }));
       if (PB.labTabExtras) PB.labTabExtras(ch, content);
     } else if (tab === 'problems') {
-      [['concept', 'Concept checks'], ['core', 'Core problems'], ['olympiad', 'Olympiad problems']].forEach(function (lv) {
-        const ps = ch.problems.filter(function (p) { return p.level === lv[0]; });
-        if (!ps.length) return;
-        const s = st[lv[0]];
-        content.appendChild(h('div', { class: 'section-head', style: 'margin-top:8px' }, [h('h2', { text: lv[1] }), h('p', { text: s.solved + ' of ' + s.total + ' solved' })]));
-        const list = h('div', { class: 'prob-list' });
-        ps.forEach(function (p) { list.appendChild(problemCard(p, { onChange: function () { renderSidebar(ch.id); } })); });
-        content.appendChild(list);
-      });
+      const end = PB.endProblems ? PB.endProblems(ch) : ch.problems;
+      const endSolved = end.filter(function (p) { return S().solved[p.id]; }).length;
+      content.appendChild(h('div', { class: 'section-head', style: 'margin-top:8px' }, [h('h2', { text: 'End-of-chapter problems' }), h('p', { text: endSolved + ' of ' + end.length + ' solved · the hardest problems, drawing on the whole chapter' })]));
+      const list = h('div', { class: 'prob-list' });
+      end.forEach(function (p) { list.appendChild(problemCard(p, { onChange: function () { renderSidebar(ch.id); } })); });
+      content.appendChild(list);
+      const place = PB.checkPlacement ? PB.checkPlacement(ch) : [];
+      const inText = place.reduce(function (a, l) { return a + l.length; }, 0);
+      if (inText) {
+        const box = h('section', { class: 'in-text-index' }, [h('h3', { text: 'Practice in the text' }), h('p')]);
+        box.lastChild.textContent = inText + ' more problems sit inside the sections they practise' + (PB.isPassed(ch) ? '.' : '; passing the chapter needs ' + PB.passNeeds(ch).join(' and ') + '.');
+        const ol = h('ol');
+        place.forEach(function (l, i) {
+          if (!l.length) return;
+          const done = l.filter(function (p) { return S().solved[p.id]; }).length;
+          ol.appendChild(h('li', { value: String(i + 1) }, [h('a', { href: '#ch-' + ch.id, onclick: function () { PB.pendingSection = i; }, html: ch.sections[i].title }), h('small', { text: ' · ' + done + ' / ' + l.length + ' solved · ' + ['concept', 'core', 'olympiad'].map(function (lv) { const k = l.filter(function (p) { return p.level === lv; }).length; return k ? k + ' ' + lv : ''; }).filter(Boolean).join(', ') })]));
+        });
+        box.appendChild(ol);
+        content.appendChild(box);
+      }
     } else if (tab === 'formulas') {
       content.appendChild(formulaBlock(ch, false));
     }

@@ -47,7 +47,7 @@
   PB.SUBJECTS.forEach((sub) => sub.parts.forEach((part) => {
     const chs = PB.chaptersOf(sub.id).filter((c) => c.part === part);
     if (!chs.length) return;
-    const b = { id: sub.id + '-' + slug(part), subject: sub.id, title: part === 'Foundations' ? sub.name + ' Foundations' : part, icon: ICON[sub.id + '/' + part] || ICON[part] || sub.mark, chapters: chs };
+    const b = { id: sub.id + '-' + slug(part), subject: sub.id, title: part === 'Foundations' ? sub.name + ' Foundations' : part, icon: (PB.PART_ICONS || {})[sub.id + '/' + part] || (PB.PART_ICONS || {})[part] || ICON[sub.id + '/' + part] || ICON[part] || sub.mark, chapters: chs };
     chs.forEach((c, i) => { c.book = b.id; c.module = i + 1; });
     PB.BOOKS.push(b);
   }));

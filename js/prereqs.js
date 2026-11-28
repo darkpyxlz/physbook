@@ -8,8 +8,8 @@
     // Mathematics (a self-contained track: the other sciences do not require it)
     'math-limits': ['math-functions'], 'math-derivatives': ['math-limits'], 'math-applications': ['math-derivatives'], 'math-integrals': ['math-derivatives'],
     'math-techniques': ['math-integrals'], 'math-series': ['math-techniques'], 'math-odes': ['math-techniques'], 'math-multivar': ['math-applications', 'math-integrals'],
-    'math-complex': ['math-functions'], 'math-proof': ['math-functions'], 'math-numbertheory': ['math-proof'], 'math-combinatorics': ['math-proof'],
-    'math-inequalities': ['math-proof'], 'math-algebra': ['math-proof', 'math-complex'], 'math-geometry': ['math-proof'],
+    'math-trig': ['math-functions'], 'math-complex': ['math-trig'], 'math-proof': ['math-functions'], 'math-numbertheory': ['math-proof'], 'math-combinatorics': ['math-proof'],
+    'math-inequalities': ['math-proof'], 'math-algebra': ['math-proof', 'math-complex'], 'math-geometry': ['math-proof', 'math-trig'],
     'math-sequences': ['math-functions'], 'math-vectorcalc': ['math-multivar'], 'math-linear': ['math-functions'], 'math-stats': ['math-integrals', 'math-combinatorics'],
     'math-recurrences': ['math-combinatorics', 'math-sequences'], 'math-graphs': ['math-proof'], 'math-games': ['math-proof'], 'math-diophantine': ['math-numbertheory'],
     // Physics
