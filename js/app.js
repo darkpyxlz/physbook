@@ -132,7 +132,7 @@
     nav.innerHTML = '';
     const link = function (id, mark, name, extra) { return h('a', { class: 'rail-link' + (activeId === id ? ' active' : ''), href: '#' + id }, [h('span', { class: 'rail-num', text: mark }), h('span', { class: 'rail-name', text: name }), extra || null]); };
     nav.appendChild(h('div', { class: 'rail-group', text: 'Learn' }));
-    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['adapt', '🎯', 'Adaptive practice'], ['gym', '🏋', 'Practice gym'], ['arena', '⚔', 'Problem arena'], ['journal', '📓', 'Mistake journal']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
+    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['textbooks', '📘', 'Textbooks'], ['adapt', '🎯', 'Adaptive practice'], ['gym', '🏋', 'Practice gym'], ['arena', '⚔', 'Problem arena'], ['journal', '📓', 'Mistake journal']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     nav.appendChild(h('div', { class: 'rail-group', text: 'Collect' }));
     [['garden', '🌻', 'Science garden'], ['cards', '🃏', 'Collections'], ['wild', '🌍', 'In the wild'], ['goal', '🔥', 'Daily goal & streak'], ['profile', '🏅', 'Level & badges']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     nav.appendChild(h('div', { class: 'rail-group', text: 'Tools' }));

@@ -435,7 +435,7 @@
   // Chapters fully solved. ids are chapter numbers within a subject (physics unless given).
   const chaptersDone = function (ids, subject) {
     subject = subject || 'physics';
-    return PB.chapters.filter(function (c) { return (!ids || (c.subject === subject && ids.indexOf(c.num) >= 0)) && c.problems.length && c.problems.every(function (p) { return PB.S.solved[p.id]; }); }).length;
+    return PB.chapters.filter(function (c) { return (!ids || (c.subject === subject && ids.indexOf(c.legacyNum != null ? c.legacyNum : c.num) >= 0)) && c.problems.length && c.problems.every(function (p) { return PB.S.solved[p.id]; }); }).length;
   };
   const subjectDone = function (sid) { return PB.chaptersOf(sid).filter(function (c) { return c.problems.length && c.problems.every(function (p) { return PB.S.solved[p.id]; }); }).length; };
   const solvedIn = function (sid) { return solvedList().filter(function (p) { return PB.chapter(p.chapter).subject === sid; }).length; };

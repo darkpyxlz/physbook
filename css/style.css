@@ -1621,3 +1621,22 @@ pre[data-lang="text"], pre[data-lang="http"] { border-left-color: var(--line); }
   .hud-stats { flex: none; }
   .hud-stats > * { flex: none; }
 }
+
+/* ---------- Textbooks (reading companion) ---------- */
+a.cc-tab { text-decoration: none; color: inherit; }
+.tb-refs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font: 13px var(--f-ui); }
+.tb-refs-lbl { color: var(--ink-3); font-weight: 600; }
+.tb-ref { display: inline-flex; gap: 4px; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+.tb-ref:hover { background: var(--accent); color: var(--accent-ink); }
+.tb-table { display: grid; gap: 4px; margin-bottom: 14px; }
+.tb-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; align-items: center; padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.tb-num { font: 700 13px var(--f-mono); color: var(--ink-3); }
+.tb-title { font: 600 14.5px var(--f-ui); }
+.tb-mods { display: flex; flex-wrap: wrap; gap: 6px; }
+.tb-chip { display: inline-flex; flex-direction: column; gap: 3px; min-width: 120px; padding: 5px 10px; border-radius: 9px; background: var(--surface-2); color: var(--ink); text-decoration: none; font: 600 13px var(--f-ui); border-left: 3px solid var(--accent); }
+.tb-chip.subj-biology { border-left-color: var(--s-biology); } .tb-chip.subj-chemistry { border-left-color: var(--s-chemistry); } .tb-chip.subj-physics { border-left-color: var(--s-physics); } .tb-chip.subj-maths { border-left-color: var(--s-maths); }
+.tb-chip:hover { background: var(--accent-soft); }
+.tb-chip.soon { color: var(--ink-3); font-weight: 500; font-style: italic; border-left-color: var(--line); }
+.tb-chip-bar { display: block; height: 4px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.tb-chip-bar i { display: block; height: 100%; background: var(--good); }
+@media (max-width: 640px) { .tb-row { grid-template-columns: 40px minmax(0, 1fr); } .tb-mods { grid-column: 1 / -1; } }
