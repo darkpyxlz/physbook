@@ -36,15 +36,27 @@
     if (!el.isConnected) { requestAnimationFrame(function () { if (el.isConnected) typeset(el); }); return; }
     if (mjReady && window.MathJax && MathJax.typesetPromise) {
       // Queue typesetting: overlapping MathJax runs on the same nodes can leave formulas unrendered.
-      mjChain = mjChain.then(function () { if (el.isConnected) return MathJax.typesetPromise([el]); }).catch(function (e) { console.warn('MathJax', e, (el.className || el.tagName) + ': ' + (el.textContent || '').slice(0, 120)); });
+      mjChain = mjChain.then(function () { if (el.isConnected) return MathJax.typesetPromise([el]).then(function () { fitMath(el); }); }).catch(function (e) { console.warn('MathJax', e, (el.className || el.tagName) + ': ' + (el.textContent || '').slice(0, 120)); });
     } else mjQueue.push(el);
   }
+  // Inline formulas wider than their column (common on phones) become their own scrollable line,
+  // so the page itself never scrolls sideways.
+  function fitMath(root) {
+    (root && root.querySelectorAll ? root : document).querySelectorAll('mjx-container:not([display="true"])').forEach(function (c) {
+      const p = c.parentElement;
+      if (!p) return;
+      c.classList.remove('mjx-wide');
+      if (c.getBoundingClientRect().width > p.clientWidth + 1) c.classList.add('mjx-wide');
+    });
+  }
+  let fitTimer = null;
+  window.addEventListener('resize', function () { clearTimeout(fitTimer); fitTimer = setTimeout(function () { fitMath(document.getElementById('main')); }, 250); });
   document.addEventListener('mathjax-ready', function () {
     mjReady = true;
     const items = mjQueue.splice(0).filter(function (el) { return el.isConnected; });
     // Keep only the outermost elements: typesetting a node and its ancestor in one call processes the same formulas twice.
     const roots = items.filter(function (el, i) { return items.indexOf(el) === i && !items.some(function (o) { return o !== el && o.contains(el); }); });
-    if (roots.length) mjChain = mjChain.then(function () { return MathJax.typesetPromise(roots); }).catch(function (e) { console.warn('MathJax', e); });
+    if (roots.length) mjChain = mjChain.then(function () { return MathJax.typesetPromise(roots).then(function () { roots.forEach(fitMath); }); }).catch(function (e) { console.warn('MathJax', e); });
   });
 
   /* ---------- Theme ---------- */
@@ -87,7 +99,7 @@
     if (!nav) return;
     nav.innerHTML = '';
     const cur = S().lastChapter && PB.chapter(S().lastChapter), bk = cur && PB.bookOf ? PB.bookOf(cur) : null;
-    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['code', '💻', 'Code lab'], ['cards', '🃏', 'Collections']].forEach(function (t) {
+    [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['code', '💻', 'Code lab'], ['garden', '🌻', 'Garden'], ['cards', '🃏', 'Collections']].forEach(function (t) {
       nav.appendChild(h('a', { class: 'subj-tab' + (currentActive === t[0] ? ' active' : ''), href: '#' + t[0] }, [h('span', { class: 'subj-mark', text: t[1] }), h('span', { class: 'subj-name', text: t[2] })]));
     });
     if (bk) nav.appendChild(h('a', { class: 'subj-tab subj-' + bk.subject + (currentActive === 'book-' + bk.id || (cur && currentActive === cur.id) ? ' active' : ''), href: '#book-' + bk.id }, [h('span', { class: 'subj-mark', text: bk.icon }), h('span', { class: 'subj-name', text: bk.title })]));
@@ -107,7 +119,7 @@
     const th = h('button', { class: 'icon-btn hud-theme', 'aria-label': 'Switch light or dark theme', html: isDark() ? SUN : MOON, onclick: function () {
       S().theme = isDark() ? 'light' : 'dark'; PB.save(); applyTheme(); renderHUD(); PB.emit({ type: 'theme' });
     } });
-    const gold = PB.wallet ? h('a', { class: 'hud-gold', href: '#cards', title: 'Coins (for prediction bets) and gems', html: '<span class="coin">◉</span>' + PB.wallet.coins() + ' <span class="coin">💎</span>' + PB.wallet.gems() }) : null;
+    const gold = PB.wallet ? h('a', { class: 'hud-gold', href: '#garden', title: 'Coins (spend them in the science garden), gems, and garden water (earned by solving problems)', html: '<span class="coin">◉</span>' + PB.wallet.coins() + ' <span class="coin">💎</span>' + PB.wallet.gems() + (PB.garden ? ' <span class="coin hud-water">💧</span>' + PB.garden.water() : '') }) : null;
     box.append(lvl, st);
     if (gold) box.append(gold);
     box.append(th);
@@ -122,7 +134,7 @@
     nav.appendChild(h('div', { class: 'rail-group', text: 'Learn' }));
     [['home', '🌳', 'Skill tree'], ['library', '📚', 'Library'], ['adapt', '🎯', 'Adaptive practice'], ['gym', '🏋', 'Practice gym'], ['arena', '⚔', 'Problem arena'], ['journal', '📓', 'Mistake journal']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     nav.appendChild(h('div', { class: 'rail-group', text: 'Collect' }));
-    [['cards', '🃏', 'Collections'], ['wild', '🌍', 'In the wild'], ['goal', '🔥', 'Daily goal & streak'], ['profile', '🏅', 'Level & badges']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
+    [['garden', '🌻', 'Science garden'], ['cards', '🃏', 'Collections'], ['wild', '🌍', 'In the wild'], ['goal', '🔥', 'Daily goal & streak'], ['profile', '🏅', 'Level & badges']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     nav.appendChild(h('div', { class: 'rail-group', text: 'Tools' }));
     [['code', '💻', 'Code lab'], ['solver', '∑', 'Equation board'], ['formulas', 'ƒ', 'Formula sheet'], ['glossary', 'Aa', 'Glossary']].forEach(function (x) { nav.appendChild(link(x[0], x[1], x[2])); });
     const cur = PB.chapter(activeId) || (S().lastChapter && PB.chapter(S().lastChapter));
